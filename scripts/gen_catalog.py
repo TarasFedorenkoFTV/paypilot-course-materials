@@ -33,6 +33,7 @@ SURFACE = {
     "D15": "trace (input tokens grow)", "D16": "trace (retrieval.index)",
     "D17": "trace (retrieval.fragments)", "D18": "fixtures (judge pairs)",
     "D19": "text + tool args", "D20": "text", "D22": "text + tool result",
+    "D21": "text + tool result (spread_amount)", "D23": "text (multi-turn)",
     "D24": "text", "D25": "text", "D26": "text",
     "D27": "trace (absence of escalate span)",
 }

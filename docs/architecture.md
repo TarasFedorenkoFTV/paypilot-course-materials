@@ -4,8 +4,9 @@
 
 ```
                         ┌─────────────────────────────┐
-   HTTP /chat  ───────► │  app/main.py (FastAPI)       │
-   HTTP /api/_test/*    │   chat surface + test API    │
+   GET  /       ──────► │  app/main.py (FastAPI)       │  chat UI (static)
+   POST /chat   ──────► │   chat surface + test API    │
+   /api/_test/* ──────► │   + /compare (clean vs prof) │
                         └───────────────┬──────────────┘
                                         │
                             ┌───────────▼───────────┐
@@ -45,8 +46,12 @@
   OpenAI. Перемикається змінною `LLM_PROVIDER`.
 - **Профілі й overlay** — дефекти рівня специфікації вмикаються накладанням
   фрагментів на `prompts/base.v1.md` без правки базового файлу.
-- **Трасування** — власний in-process трейсер, стабільний JSONL + API; OTLP/
-  Jaeger-експорт чіпляється на ті самі Span-обʼєкти пізніше.
+- **Трасування** — власний in-process трейсер (стабільний JSONL + API) плюс
+  дзеркалювання в Phoenix через OTLP. API і файл працюють завжди, навіть коли
+  колектор не піднятий: assertions студента не залежать від зовнішнього сервісу.
+- **Чат-UI** — один статичний файл без збірки (`app/static/index.html`):
+  перемикач профілів, точкове вмикання дефектів, керування часом, скидання
+  стану, дерево спанів останнього ходу і режим «clean vs профіль».
 
 ## Життєвий цикл запиту `/chat`
 
@@ -62,6 +67,7 @@
 
 ## Порти й запуск
 
-- API + чат: `http://localhost:8000` (docker compose або `make dev`).
+- Чат-UI + API: `http://localhost:8000` (docker compose або `make dev`).
+- Phoenix (UI трасування): `http://localhost:6006`.
 - Трейси: `GET /api/_test/traces/{request_id}` та файл `traces/traces.jsonl`.
 - Стан: `GET /api/_test/state/{table}`.
