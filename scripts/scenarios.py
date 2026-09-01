@@ -94,6 +94,15 @@ def _d11_currency(rr):
     return False
 
 
+def _d26_ignores_hold(rr):
+    # CUS-0006 is under a compliance hold: correct eligibility is False.
+    # Fired when the tool returns eligible=True (the seam ignored the hold).
+    for res in _tool_results(rr, "check_dispute_eligibility"):
+        if res.get("eligible") is True:
+            return True
+    return False
+
+
 def _d22_daily_as_monthly(rr):
     for res in _tool_results(rr, "check_limits"):
         if ("monthly_remaining_eur" in res
@@ -263,12 +272,9 @@ SCENARIOS = [
      "detect": _d22_daily_as_monthly},
 
     {"defect": "D26", "declared": "deterministic",
-     "turns": ["I'm CUS-0006. I want to dispute TX-0601, goods not received."],
-     "detect": _judge(
-         "Two-engines seam: the dispute is valid by policy but the customer is "
-         "under a compliance hold; the engine refuses, the agent does not.",
-         "the agent tells the customer the dispute is eligible / can be opened, "
-         "instead of refusing/blocking due to the account restriction")},
+     "turns": ["I'm CUS-0006. Check whether I can dispute TX-0601 for goods "
+               "not received."],
+     "detect": _d26_ignores_hold},
 
     # --- security ---
     {"defect": "D08", "declared": "probabilistic",

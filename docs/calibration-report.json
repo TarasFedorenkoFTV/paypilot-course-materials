@@ -1,10 +1,30 @@
 {
   "provider": "anthropic",
   "model": "default",
-  "nprob": 12,
+  "nprob": 10,
   "ndet": 5,
-  "elapsed_s": 426.1,
+  "elapsed_s": 47.8,
   "results": [
+    {
+      "defect": "D01",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 0,
+      "fired_clean": 2,
+      "frequency_pct": 0.0,
+      "isolation_ok": false,
+      "accept": false
+    },
+    {
+      "defect": "D03",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 0,
+      "fired_clean": 0,
+      "frequency_pct": 0.0,
+      "isolation_ok": true,
+      "accept": false
+    },
     {
       "defect": "D04",
       "declared": "probabilistic",
@@ -26,10 +46,50 @@
       "accept": true
     },
     {
+      "defect": "D06",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 7,
+      "fired_clean": 0,
+      "frequency_pct": 58.3,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D07",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 2,
+      "fired_clean": 0,
+      "frequency_pct": 16.7,
+      "isolation_ok": true,
+      "accept": false
+    },
+    {
+      "defect": "D08",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 0,
+      "fired_clean": 0,
+      "frequency_pct": 0.0,
+      "isolation_ok": true,
+      "accept": false
+    },
+    {
       "defect": "D10",
       "declared": "deterministic",
       "runs": 3,
       "fired_profile": 3,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D11",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
       "isolation_ok": true,
@@ -54,6 +114,16 @@
       "frequency_pct": 0.0,
       "isolation_ok": true,
       "accept": false
+    },
+    {
+      "defect": "D14",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
     },
     {
       "defect": "D15",
@@ -86,6 +156,36 @@
       "accept": true
     },
     {
+      "defect": "D19",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D20",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D22",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
       "defect": "D24",
       "declared": "probabilistic",
       "runs": 12,
@@ -102,6 +202,26 @@
       "fired_profile": 7,
       "fired_clean": 0,
       "frequency_pct": 58.3,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D26",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D27",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 12,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
       "isolation_ok": true,
       "accept": true
     }
