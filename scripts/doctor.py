@@ -100,13 +100,22 @@ def main() -> int:
 
 def _probe_anthropic(key: str):
     try:
+        import time
+
         import httpx
-        r = httpx.post("https://api.anthropic.com/v1/messages",
-                       headers={"x-api-key": key,
-                                "anthropic-version": "2023-06-01"},
-                       json={"model": "claude-haiku-4-5", "max_tokens": 1,
-                             "messages": [{"role": "user", "content": "ping"}]},
-                       timeout=15)
+        # A balance top-up can take a moment to propagate, so a single 400 is
+        # not proof the key is unusable: retry briefly before reporting.
+        for attempt in range(3):
+            r = httpx.post("https://api.anthropic.com/v1/messages",
+                           headers={"x-api-key": key,
+                                    "anthropic-version": "2023-06-01"},
+                           json={"model": "claude-haiku-4-5", "max_tokens": 1,
+                                 "messages": [{"role": "user",
+                                               "content": "ping"}]},
+                           timeout=15)
+            if r.status_code == 200 or attempt == 2:
+                break
+            time.sleep(3)
         if r.status_code == 200:
             check("anthropic api reachable", OK, "HTTP 200")
         else:
