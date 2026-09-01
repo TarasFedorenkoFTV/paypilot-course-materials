@@ -6,3 +6,4 @@ data/*.db
 traces/
 .env
 .pytest_cache/
+lr_txt/

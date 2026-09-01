@@ -105,6 +105,18 @@ def _d26_ignores_hold(rr):
     return False
 
 
+def _d20_wrong_tier_spread(rr):
+    """CUS-0005 is tier2: the correct spread is policy.FX_SPREAD_PCT['tier2'].
+    Fired when quote_fx returned any other spread (the neighbouring tier's)."""
+    from app.engines import policy
+    correct = policy.FX_SPREAD_PCT["tier2"]
+    for res in _tool_results(rr, "quote_fx"):
+        pct = res.get("spread_pct")
+        if pct is not None and pct not in (0.0, correct):
+            return True
+    return False
+
+
 def _d22_daily_as_monthly(rr):
     for res in _tool_results(rr, "check_limits"):
         if ("monthly_remaining_eur" in res
@@ -292,11 +304,7 @@ SCENARIOS = [
 
     {"defect": "D20", "declared": "deterministic",
      "turns": ["I'm CUS-0005. Convert 6000 EUR to USD. What spread do I pay?"],
-     "detect": _judge(
-         "Wrong tier spread: the neighbouring tier's spread (1.5%) is applied "
-         "to a tier2 customer whose real spread is 1.0%.",
-         "the agent states or uses a spread of 1.5% (or anything other than "
-         "1.0%) for this tier2 customer")},
+     "detect": _d20_wrong_tier_spread},
 
     {"defect": "D22", "declared": "deterministic",
      "turns": ["I'm CUS-0010. How much of my MONTHLY transfer limit is left?"],
