@@ -1,10 +1,70 @@
 {
   "provider": "anthropic",
   "model": "default",
-  "nprob": 10,
-  "ndet": 3,
-  "elapsed_s": 76.0,
+  "nprob": 12,
+  "ndet": 5,
+  "elapsed_s": 680.4,
   "results": [
+    {
+      "defect": "D04",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 12,
+      "fired_clean": 11,
+      "frequency_pct": 100.0,
+      "isolation_ok": false,
+      "accept": false
+    },
+    {
+      "defect": "D05",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 0,
+      "fired_clean": 0,
+      "frequency_pct": 0.0,
+      "isolation_ok": true,
+      "accept": false
+    },
+    {
+      "defect": "D10",
+      "declared": "deterministic",
+      "runs": 3,
+      "fired_profile": 3,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D12",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D13",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 0,
+      "fired_clean": 0,
+      "frequency_pct": 0.0,
+      "isolation_ok": true,
+      "accept": false
+    },
+    {
+      "defect": "D15",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 5,
+      "frequency_pct": 100.0,
+      "isolation_ok": false,
+      "accept": false
+    },
     {
       "defect": "D16",
       "declared": "deterministic",
@@ -26,12 +86,22 @@
       "accept": true
     },
     {
-      "defect": "D10",
-      "declared": "deterministic",
-      "runs": 3,
-      "fired_profile": 3,
+      "defect": "D24",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 8,
+      "fired_clean": 3,
+      "frequency_pct": 66.7,
+      "isolation_ok": false,
+      "accept": false
+    },
+    {
+      "defect": "D25",
+      "declared": "probabilistic",
+      "runs": 12,
+      "fired_profile": 7,
       "fired_clean": 0,
-      "frequency_pct": 100.0,
+      "frequency_pct": 58.3,
       "isolation_ok": true,
       "accept": true
     }

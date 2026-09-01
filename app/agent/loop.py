@@ -70,6 +70,10 @@ def run_turn(session_id: str | None, user_message: str) -> dict:
     system, prompt_version = prompt.build()
     trace.root.attributes["prompt.version"] = prompt_version
     trace.root.attributes["llm.provider"] = provider.name
+    # D15 marker: replay kicks in once there are prior-turn tool results to
+    # re-append. Recorded so the inflation is detectable, not just visible.
+    trace.root.attributes["context.replay_active"] = (
+        defects.is_on("D15") and any(m["role"] == "tool" for m in state["messages"]))
 
     if summarize.should_summarize(state["steps"]) and not state.get("summarized"):
         with trace.span("agent.summarize") as s:

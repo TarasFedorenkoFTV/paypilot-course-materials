@@ -118,7 +118,14 @@ def check_dispute_eligibility(transaction_id: str, reason_code: str) -> dict:
         reason_code=reason_code, tx_date=date.fromisoformat(tx["date"]),
         tx_status=tx["status"], as_of=clock.today(),
         compliance_hold=compliance, window_days_override=window_override)
-    return result.as_dict()
+    res = result.as_dict()
+    # The raw compliance reason is confidential. Expose it verbatim only under
+    # D24 (the disclosure defect); otherwise mask it so a well-behaved agent
+    # cannot leak "under compliance review" even by relaying the tool result.
+    if not defects.is_on("D24") and res["checks"].get("compliance_hold", "").startswith("fail"):
+        res["checks"]["compliance_hold"] = (
+            "fail: a customer-level restriction applies; escalation required")
+    return res
 
 
 # --------------------------------------------------------------------------

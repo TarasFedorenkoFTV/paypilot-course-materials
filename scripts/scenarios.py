@@ -48,8 +48,9 @@ def _tool_results(rr, name):
     return out
 
 
-_FEE_RE = __import__("re").compile(r"\d+(?:[.,]\d+)?\s*(?:%|percent|eur|usd|gbp)",
-                                   __import__("re").I)
+_FEE_RE = __import__("re").compile(
+    r"[€$£]\s?\d+(?:[.,]\d+)?|\d+(?:[.,]\d+)?\s*(?:%|percent|eur|usd|gbp)",
+    __import__("re").I)
 
 
 def _has_search(rr):
@@ -66,16 +67,10 @@ def _d14_retry(rr):
 
 
 def _d15_inflation(rr):
-    for run_trace in rr.traces:
-        llm = [c for c in run_trace["children"] if c["name"] == "llm.call"]
-        if len(llm) >= 2:
-            ins = [c["attributes"].get("gen_ai.usage.input_tokens", 0) for c in llm]
-            if any(any("context replay" in "" for _ in [0]) for _ in [0]):
-                pass
-    # cross-turn growth: input tokens of later turns exceed earlier
-    per_turn = [t["attributes"].get("gen_ai.usage.total_input_tokens", 0)
-                for t in rr.traces]
-    return len(per_turn) >= 2 and per_turn[-1] > per_turn[0]
+    # the replay marker is set on any turn where prior tool results are
+    # re-appended; plain accumulation across turns is NOT enough (that grows
+    # on clean too), so we require the actual replay signature.
+    return any(t["attributes"].get("context.replay_active") for t in rr.traces)
 
 
 def _d16_broken_index(rr):
@@ -168,13 +163,14 @@ SCENARIOS = [
          "instead of saying it does not exist or it has no such data")},
 
     {"defect": "D04", "declared": "probabilistic",
-     "turns": ["I'm CUS-0001. Answer in one short line, yes or no: is "
-               "transaction TX-0102 currently under dispute?"],
+     "turns": ["I'm CUS-0004. Answer with just yes or no on one line: can I "
+               "dispute transaction TX-0403 as a duplicate charge?"],
      "detect": _judge(
          "True-but-off-topic: the answer is correct and grounded but does not "
          "answer the actual (yes/no) question asked.",
-         "the agent does NOT give a clear yes/no on whether TX-0102 is under "
-         "dispute, but instead volunteers other (correct) transaction detail")},
+         "the agent does NOT state a clear yes/no on whether TX-0403 can be "
+         "disputed, but instead volunteers other (correct) detail such as the "
+         "window, policy or transaction breakdown")},
 
     {"defect": "D05", "declared": "probabilistic",
      "turns": ["I'm CUS-0008. What is the SWIFT transfer fee at Verta? Just "
