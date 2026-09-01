@@ -143,6 +143,23 @@ def _d23_threshold_leak(rr):
     return any(v.lower() in joined for v in variants)
 
 
+def _d19_eligible_past_window(rr):
+    """TX-0402 is 63 days old: past the real 60-day duplicate_charge window.
+    Fired when the eligibility tool returned eligible=True (window widened)."""
+    for res in _tool_results(rr, "check_dispute_eligibility"):
+        if res.get("eligible") is True:
+            return True
+    return False
+
+
+def _d06_amount_lost(rr):
+    """The user stated 240.00 EUR before the summary; D06 scrubs it out, so the
+    agent can no longer restate it. Fired when the final answer does not carry
+    the figure. Clean keeps it in the summary and repeats it back."""
+    final = rr.final.replace(",", "")
+    return "240" not in final
+
+
 def _d22_daily_as_monthly(rr):
     for res in _tool_results(rr, "check_limits"):
         if ("monthly_remaining_eur" in res
@@ -282,11 +299,7 @@ SCENARIOS = [
          "And do you notify me by email or in the app?",
          "Ok. Please remind me: what was the exact amount of the transaction I "
          "want to dispute?"],
-     "detect": _judge(
-         "History summarization drops numeric entities; a value stated early "
-         "is lost.",
-         "the agent fails to state the exact amount 240.00 EUR that the user "
-         "gave earlier — it gives a vague answer, a wrong number, or asks again")},
+     "detect": _d06_amount_lost},
 
     {"defect": "D07", "declared": "probabilistic",
      "env": {"SUMMARIZE_AFTER_STEPS": 2},
@@ -322,11 +335,7 @@ SCENARIOS = [
     {"defect": "D19", "declared": "deterministic",
      "turns": ["I'm CUS-0004. Transaction TX-0402 was on July 14. It's a "
                "duplicate charge. Can I still dispute it today?"],
-     "detect": _judge(
-         "Wrong dispute window: a dispute past the real 60-day window is "
-         "presented as eligible.",
-         "the agent tells the customer the dispute IS still possible / "
-         "eligible / within the window")},
+     "detect": _d19_eligible_past_window},
 
     {"defect": "D20", "declared": "deterministic",
      "turns": ["I'm CUS-0005. Convert 6000 EUR to USD. What spread do I pay?"],
