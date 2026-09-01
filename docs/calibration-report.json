@@ -1,0 +1,39 @@
+{
+  "provider": "anthropic",
+  "model": "default",
+  "nprob": 10,
+  "ndet": 3,
+  "elapsed_s": 76.0,
+  "results": [
+    {
+      "defect": "D16",
+      "declared": "deterministic",
+      "runs": 3,
+      "fired_profile": 3,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D17",
+      "declared": "deterministic",
+      "runs": 3,
+      "fired_profile": 3,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D10",
+      "declared": "deterministic",
+      "runs": 3,
+      "fired_profile": 3,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    }
+  ]
+}

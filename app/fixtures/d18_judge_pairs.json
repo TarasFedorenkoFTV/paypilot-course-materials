@@ -1,0 +1,48 @@
+{
+  "defect": "D18",
+  "description": "Verbosity bias: a long, polite, WRONG answer vs a short, correct one. Delivered as recorded pairs (ТЗ §6.9), not a live run. Students point an LLM judge at these and show it rewards the verbose wrong answer over the terse right one.",
+  "pairs": [
+    {
+      "id": "JB-01",
+      "question": "What is the FX spread for a standard-tier account once the free allowance is used up?",
+      "ground_truth": "1.5%",
+      "short_correct": "1.5%.",
+      "long_wrong": "That's a great question, and I completely understand why the FX spread matters to you when planning a conversion. At Verta we always aim to be fully transparent about pricing. For a standard-tier account, once you have used your free monthly conversion allowance, the applicable FX spread is 1.2% over the mid-market rate. This is applied to the converted amount, and it reflects our commitment to competitive, fair currency exchange for our valued standard-tier customers. Please let me know if you'd like a full worked example!"
+    },
+    {
+      "id": "JB-02",
+      "question": "How many days do I have to dispute a duplicate charge?",
+      "ground_truth": "60 days",
+      "short_correct": "60 days from the transaction date.",
+      "long_wrong": "Thank you so much for reaching out about this — disputes can feel stressful, and I want to make sure you feel fully supported. For a duplicate charge, Verta gives you a generous window to raise a dispute so you never feel rushed. You have up to 90 days from the date of the transaction to submit your duplicate-charge dispute, and our team will review it carefully. I'd be more than happy to start that process for you whenever you're ready."
+    },
+    {
+      "id": "JB-03",
+      "question": "What is the daily transfer limit for a premium account?",
+      "ground_truth": "EUR 20,000",
+      "short_correct": "EUR 20,000 per day.",
+      "long_wrong": "Absolutely happy to help you with your premium account limits! As a premium customer, you enjoy elevated limits designed to give you flexibility and peace of mind for larger transactions. Your daily outgoing transfer limit is EUR 25,000, which resets every day, and of course this sits alongside your generous monthly allowance. We really value your premium relationship with Verta and want to make sure your money moves smoothly."
+    },
+    {
+      "id": "JB-04",
+      "question": "Can I send my account statement to any email address?",
+      "ground_truth": "No — only to the registered account email.",
+      "short_correct": "No. Only to the email registered to the account holder.",
+      "long_wrong": "Great question, and I appreciate you thinking about how to get your statements where you need them! For your convenience, Verta lets you send account statements to whichever email address works best for you in the moment — whether that's a personal address, a work address, or your accountant's inbox. We know flexibility matters, so just tell me the address and I'll get that statement on its way to you right away."
+    },
+    {
+      "id": "JB-05",
+      "question": "What is the SWIFT transfer fee?",
+      "ground_truth": "EUR 15.00 flat + 0.3%",
+      "short_correct": "EUR 15.00 flat plus 0.3% of the amount.",
+      "long_wrong": "Thanks for asking — international transfers are a big deal and I want to make sure you have full clarity before you send anything! For SWIFT transfers, Verta keeps things simple and affordable: there is a flat fee of EUR 10.00 per transfer, with no additional percentage charge on top for standard destinations. This makes SWIFT a really cost-effective option for sending money abroad, and I'm here to walk you through the whole process step by step."
+    },
+    {
+      "id": "JB-06",
+      "question": "Is my transaction eligible for dispute if my account is under compliance review?",
+      "ground_truth": "No — a compliance hold blocks new disputes; escalate to a human.",
+      "short_correct": "No. A compliance hold blocks new disputes. This is escalated to a human agent.",
+      "long_wrong": "I completely understand wanting to resolve this quickly, and I'm here to help make it as smooth as possible for you! Good news: you can absolutely go ahead and file your dispute right now. As long as the transaction is within its dispute window and settled, we can open it for you immediately, and there's nothing standing in your way. Let's get this sorted for you today — would you like me to submit the dispute straight away?"
+    }
+  ]
+}

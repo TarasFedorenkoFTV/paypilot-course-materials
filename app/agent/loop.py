@@ -15,7 +15,7 @@ import json
 import uuid
 
 from app import config, defects
-from app.agent import prompt, tools
+from app.agent import prompt, summarize, tools
 from app.agent.providers.base import get_provider
 from app.tracing import RequestTrace
 
@@ -66,6 +66,17 @@ def run_turn(session_id: str | None, user_message: str) -> dict:
     system, prompt_version = prompt.build()
     trace.root.attributes["prompt.version"] = prompt_version
     trace.root.attributes["llm.provider"] = provider.name
+
+    if summarize.should_summarize(state["steps"]) and not state.get("summarized"):
+        with trace.span("agent.summarize") as s:
+            summary = summarize.summarize_messages(provider, state["messages"])
+            s.attributes.update({
+                "summary.text": summary,
+                "summary.replaced_messages": len(state["messages"]),
+            })
+        state["messages"] = [{"role": "user",
+                              "content": f"(summary of earlier conversation)\n{summary}"}]
+        state["summarized"] = True
 
     state["messages"].append({"role": "user", "content": user_message})
     answer = None
