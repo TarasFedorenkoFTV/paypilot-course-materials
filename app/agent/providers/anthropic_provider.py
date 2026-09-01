@@ -65,7 +65,11 @@ class AnthropicProvider(Provider):
         resp = _post_with_retry(payload, {
             "x-api-key": config.ANTHROPIC_API_KEY,
             "anthropic-version": "2023-06-01"})
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            # surface the provider's reason: a bare status code hides whether
+            # the request was malformed, throttled or over budget.
+            raise RuntimeError(
+                f"Anthropic {resp.status_code}: {resp.text[:400]}")
         data = resp.json()
         text_parts, tool_calls = [], []
         for block in data.get("content", []):

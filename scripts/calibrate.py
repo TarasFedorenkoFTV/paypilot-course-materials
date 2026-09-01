@@ -117,8 +117,17 @@ def main():
 
     results = []
     t0 = time.time()
+    aborted = None
     for s in selected:
-        r = calibrate(s, args.nprob, args.ndet)
+        try:
+            r = calibrate(s, args.nprob, args.ndet)
+        except Exception as e:
+            # A provider outage or an exhausted balance must not throw away the
+            # defects already measured: stop, keep them, and say why.
+            aborted = f"{s['defect']}: {type(e).__name__}: {str(e)[:200]}"
+            print("")
+            print("!! aborted on " + aborted)
+            break
         results.append(r)
         flag = "OK" if r["accept"] else ("ISO!" if not r["isolation_ok"] else "LOW")
         print(f"{r['defect']:<7}{r['declared']:<15}{r['runs']:<6}"
@@ -146,6 +155,10 @@ def main():
          "results": [merged[k] for k in sorted(merged)]}, indent=2),
         encoding="utf-8")
     print(f"report -> {out}  ({len(merged)} defects total)")
+    if aborted:
+        print("Run was cut short — re-run the remaining defects once the "
+              "provider is available again.")
+        sys.exit(2)
 
 
 if __name__ == "__main__":

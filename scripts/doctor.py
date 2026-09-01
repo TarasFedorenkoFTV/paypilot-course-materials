@@ -107,9 +107,20 @@ def _probe_anthropic(key: str):
                        json={"model": "claude-haiku-4-5", "max_tokens": 1,
                              "messages": [{"role": "user", "content": "ping"}]},
                        timeout=15)
-        check("anthropic api reachable", OK if r.status_code == 200
-              else FAIL, f"HTTP {r.status_code}" +
-              ("" if r.status_code == 200 else f": {r.text[:120]}"))
+        if r.status_code == 200:
+            check("anthropic api reachable", OK, "HTTP 200")
+        else:
+            hint = ""
+            body = r.text[:300]
+            if "credit balance is too low" in body:
+                hint = (" — the organisation is out of credits; top up at "
+                        "console.anthropic.com -> Plans & Billing")
+            elif r.status_code == 401:
+                hint = " — the key is invalid or revoked"
+            elif r.status_code == 429:
+                hint = " — rate limited; retry shortly"
+            check("anthropic api reachable", FAIL,
+                  f"HTTP {r.status_code}{hint}")
     except Exception as e:
         check("anthropic api reachable", FAIL, str(e))
 

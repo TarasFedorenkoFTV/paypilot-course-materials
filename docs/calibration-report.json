@@ -1,9 +1,9 @@
 {
   "provider": "anthropic",
   "model": "default",
-  "nprob": 8,
-  "ndet": 5,
-  "elapsed_s": 174.8,
+  "nprob": 10,
+  "ndet": 2,
+  "elapsed_s": 0.8,
   "results": [
     {
       "defect": "D01",

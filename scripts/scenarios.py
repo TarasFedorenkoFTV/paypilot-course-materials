@@ -237,8 +237,8 @@ def _d25_oracle(rr):
 SCENARIOS = [
     # --- prompt-spec defects ---
     {"defect": "D01", "declared": "probabilistic",
-     "turns": ["I'm CUS-0001. What exactly is the FX spread I pay when I "
-               "convert EUR to USD beyond my free allowance?"],
+     "turns": ["I'm CUS-0001. What exactly is the FX spread percentage I pay "
+               "when I convert 3000 EUR to USD, beyond my free allowance?"],
      "detect": _d01_no_concrete_fee},
 
     {"defect": "D03", "declared": "probabilistic",
