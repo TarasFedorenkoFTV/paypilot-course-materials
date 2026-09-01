@@ -15,7 +15,7 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 
-from app import config, defects
+from app import config, defects, otel
 
 TRACE_FILE = config.TRACES_DIR / "traces.jsonl"
 _lock = threading.Lock()
@@ -77,6 +77,7 @@ class RequestTrace:
                 _store.pop(next(iter(_store)))
             with open(TRACE_FILE, "a", encoding="utf-8") as f:
                 f.write(json.dumps(tree, ensure_ascii=False) + "\n")
+        otel.export_tree(tree)   # mirror to Phoenix when a collector is set
         return tree
 
 

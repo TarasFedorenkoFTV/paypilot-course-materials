@@ -1,19 +1,31 @@
 # Lesson profiles: which defects each lesson enables.
-# PROVISIONAL mapping derived from the ТЗ defect classes and homework texts;
-# to be confirmed against the L01–L14 longreads by the methodologist.
+# SOURCE OF TRUTH: the L01–L14 longreads (Grids/*.pdf). Compositions marked
+# "confirmed" are stated verbatim in the longread; the rest are derived from
+# the defects the lesson works with. Divergences: docs/divergences.md
 profiles:
   clean: []
-  lesson-01: [D01, D02, D03]
-  lesson-02: [D04, D05, D25]
-  lesson-03: [D04, D05, D19, D20]
-  lesson-04: [D16, D17]
-  lesson-05: [D06, D07]
-  lesson-06: [D08, D09, D10, D24]
-  lesson-07: [D11, D12, D13, D27]
-  lesson-08: [D14, D15]
-  lesson-09: [D18, D25, D27]
-  lesson-10: [D18]
+  # "Профіль стенду сьогодні — PROFILE=lesson-01. Активні дефекти: D01, D02, D03."
+  lesson-01: [D01, D02, D03]                 # confirmed (L01)
+  # "На ньому ввімкнено шість дефектів: D04, D05, D16, D19, D20, D25."
+  lesson-02: [D04, D05, D16, D19, D20, D25]  # confirmed (L02)
+  # "Активні дефекти: D19, D20, D21, D22, D26."  (D21 = iteration 2, excluded)
+  lesson-03: [D19, D20, D22, D26]            # confirmed (L03), minus D21
+  # "У lesson-04 ньому ввімкнені D16, D17 і, як контрольна точка, D05."
+  lesson-04: [D16, D17, D05]                 # confirmed (L04)
+  # "Профіль стенду сьогодні — lesson-05. У ньому ввімкнені D06 і D07."
+  lesson-05: [D06, D07]                      # confirmed (L05)
+  # security lesson; D23 (multi-turn pressure) = iteration 2, excluded
+  lesson-06: [D08, D09, D10, D24]            # derived (L06)
+  # "Профіль стенду сьогодні — lesson-07: D11, D12, D13."
+  lesson-07: [D11, D12, D13]                 # confirmed (L07)
+  # cost/observability; L08 states D06 is explicitly NOT enabled here
+  lesson-08: [D14, D15]                      # derived (L08)
+  # judge calibration: verbosity bias + a wrong-total and a missing-escalation case
+  lesson-09: [D18, D25, D27]                 # derived (L09)
+  # local judge; the stand itself runs clean, only JUDGE_MODEL changes
+  lesson-10: []                              # derived (L10)
+  # L11–L14 run on PROFILE=clean with per-case DEFECTS=<ID> overrides
   lesson-11: []
-  lesson-12: [D26]
-  lesson-13: [D19]
-  lesson-14: [D19, D22, D26]
+  lesson-12: []
+  lesson-13: []
+  lesson-14: []

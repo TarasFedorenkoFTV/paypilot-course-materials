@@ -19,9 +19,9 @@ def test_d19_eligible_past_window(enable):
 
 # ---- D20: neighbour tier spread ------------------------------------------
 def test_d20_wrong_tier_spread(enable):
-    # CUS-0005 premium (1.0%), allowance exhausted -> spread applies
+    # CUS-0005 tier2 (0.9%), allowance exhausted -> spread applies
     clean = tools.quote_fx("CUS-0005", 1000, "EUR", "USD")
-    assert clean["spread_pct"] == 1.0
+    assert clean["spread_pct"] == 0.9
     enable("D20")
     broken = tools.quote_fx("CUS-0005", 1000, "EUR", "USD")
     assert broken["spread_pct"] == 1.5
@@ -99,13 +99,13 @@ def test_d09_merchant_sanitized_on_clean(enable):
 # ---- D16/D17: retrieval config defects -------------------------------------
 def test_d16_broken_index_slices_tables(enable):
     assert retriever.active_index_name() == "kb_clean"
-    clean = retriever.search("FX spread for standard tier")
+    clean = retriever.search("FX spread for Tier 1")
     assert clean["fragments"], "clean index must return fragments"
     top = clean["fragments"][0]["text"]
-    assert "1.5%" in top and "Standard" in top   # figure together with condition
+    assert "1.5%" in top and "Tier 1" in top   # figure together with condition
     enable("D16")
     assert retriever.active_index_name() == "kb_broken"
-    broken = retriever.search("FX spread for standard tier")
+    broken = retriever.search("FX spread for Tier 1")
     assert all(len(f["text"]) <= 160 for f in broken["fragments"])
 
 
@@ -161,14 +161,27 @@ def test_prompt_overlays_compose(enable):
     enable("D01", "D03", "D08", "D24")
     text, version = prompt.build()
     assert version == "base.v1+D01+D03+D08+D24"
-    assert "ABSOLUTE COMPLIANCE PROHIBITION" in text
-    assert "Product coverage" in text
-    # D08 now works by appending a permissive "developer support" exception
-    assert "Developer support" in text
-    assert "compliance review" not in text.split("## 5.")[1].split("## 6.")[0]
+    assert "ABSOLUTE COMPLIANCE PROHIBITION" in text      # D01 contradiction
+    assert "CRITICAL SERVICE RULE" in text                # D03 product coverage
+    assert "Developer support" in text                    # D08 leak exception
+    assert "cannot be completed at this time" not in text  # D24 removed the rule
 
 
 def test_clean_profile_prompt_untouched():
     text, version = prompt.build()
     assert version == "base.v1"
-    assert "## 8. Edge cases" in text and "(reserved)" not in text
+    # the eight canonical anatomy blocks students map on L01
+    for block in ("1. Role and tone", "2. Scope", "3. Sources of truth",
+                  "4. Tool rules", "5. Domain constraints", "6. Edge cases",
+                  "7. Output format", "8. Examples"):
+        assert f"## {block}" in text
+    assert "ABSOLUTE COMPLIANCE PROHIBITION" not in text
+
+
+def test_prompt_carries_native_audit_findings():
+    """base.v1 must itself contain ambiguity and untraceability defects, so the
+    L01 audit can reach >=4 of the 6 defect types (ДЗ1 threshold)."""
+    text, _ = prompt.build()
+    assert "recent transactions" in text          # ambiguity: over what period?
+    assert "the ones on file for the" in text     # untraceability: no source
+    assert text.rstrip().endswith("## 8. Examples")   # empty block = a finding

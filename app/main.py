@@ -1,12 +1,15 @@
 """PayPilot stand API: the chat surface + the test/service surface."""
+import os
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from app import clock, config, db, defects, tracing
+from app import clock, config, db, defects, otel, tracing
 from app.agent import loop, prompt, tools
 
 defects.validate_startup()
 db.ensure_seeded()
+otel.init()   # no-op unless OTEL_EXPORTER_OTLP_ENDPOINT is set
 
 app = FastAPI(title="PayPilot stand", version="0.1.0")
 
@@ -24,7 +27,8 @@ def chat(body: ChatIn):
 @app.get("/health")
 def health():
     return {"status": "ok", "profile": config.PROFILE,
-            "provider": config.LLM_PROVIDER}
+            "provider": config.LLM_PROVIDER,
+            "otlp": bool(os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"))}
 
 
 # --------------------------------------------------------------------------
@@ -74,6 +78,7 @@ class ClockIn(BaseModel):
     now: str | None = None   # ISO datetime; null -> drop runtime override
 
 
+@app.post("/api/_test/clock")          # longreads use POST; PUT kept as an alias
 @app.put("/api/_test/clock")
 def test_set_clock(body: ClockIn):
     try:
@@ -95,6 +100,15 @@ def test_prompt():
     text, version = prompt.build()
     return {"version": version, "overlays": prompt.active_overlays(),
             "text": text}
+
+
+@app.get("/api/_test/specs")
+def test_specs():
+    """Requirement documents students audit alongside the prompt (L01)."""
+    out = {}
+    for path in sorted((config.ROOT / "specs" / "requirements").glob("*.md")):
+        out[path.name] = path.read_text(encoding="utf-8")
+    return {"requirements": out}
 
 
 @app.get("/api/_test/tools")

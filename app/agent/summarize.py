@@ -29,8 +29,12 @@ import re
 # numeric entities the defective summary loses: amounts, dates, reason codes,
 # transaction ids, day-windows.
 _AMOUNT_RE = re.compile(r"[€$£]?\s?\d[\d,]*\.?\d*\s?(?:EUR|USD|GBP|%|days?)?", re.I)
-_CODE_RE = re.compile(r"\b(?:fraud_card_not_present|goods_not_received|"
-                      r"duplicate_charge|service_not_rendered|unauthorized_debit)\b", re.I)
+# matches both canonical snake_case codes and the prose forms an LLM summary
+# tends to write ("duplicate charge", "goods not received").
+_CODE_RE = re.compile(
+    r"\b(?:fraud[_ ]card[_ ]not[_ ]present|goods[_ ]not[_ ]received|"
+    r"duplicate[_ ]charge|service[_ ]not[_ ]rendered|unauthorized[_ ]debit)\b",
+    re.I)
 _TXID_RE = re.compile(r"\b(?:TX|ACC|CUS)-\d{3,4}\b", re.I)
 _DATE_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b|\b(?:January|February|March|April|"
                       r"May|June|July|August|September|October|November|December)\s+\d{1,2}\b", re.I)
@@ -40,25 +44,27 @@ def should_summarize(step_number: int) -> bool:
     return step_number > config.SUMMARIZE_AFTER_STEPS
 
 
-def _scrub_numeric(text: str) -> str:
-    """D06: mechanically strip numeric entities from the summary so the loss is
-    reliable. D07 goes further — instead of blanking, it CORRUPTS the reason
-    code to a different valid one, so the agent confidently confirms the wrong
-    value later without realizing it lost the original (self-contradiction with
-    no admission)."""
-    if defects.is_on("D07"):
+def _transform_summary(text: str) -> str:
+    """D06 blanks numeric entities, so the value is simply lost.
+    D07 instead CORRUPTS the reason code to a different valid one and leaves the
+    rest of the summary coherent — the agent then confirms the wrong value
+    confidently, never admitting the loss (self-contradiction, no confession).
+    D07 takes precedence for the code so the corrupted value survives."""
+    on6, on7 = defects.is_on("D06"), defects.is_on("D07")
+    if on7:
         text = _CODE_RE.sub("service_not_rendered", text)
-    else:
-        text = _CODE_RE.sub("the relevant reason", text)
-    text = _TXID_RE.sub("the transaction", text)
-    text = _DATE_RE.sub("the relevant date", text)
-    text = _AMOUNT_RE.sub("the amount", text)
+    if on6:
+        if not on7:
+            text = _CODE_RE.sub("the relevant reason", text)
+        text = _TXID_RE.sub("the transaction", text)
+        text = _DATE_RE.sub("the relevant date", text)
+        text = _AMOUNT_RE.sub("the amount", text)
     return text
 
 
 def summarize_messages(provider, messages: list[dict]) -> str:
-    on = defects.is_on("D06")
-    instruction = DEFECT_INSTRUCTION if on else CLEAN_INSTRUCTION
+    instruction = (DEFECT_INSTRUCTION if defects.is_on("D06")
+                   else CLEAN_INSTRUCTION)
     transcript = []
     for m in messages:
         role = m["role"]
@@ -66,10 +72,9 @@ def summarize_messages(provider, messages: list[dict]) -> str:
             transcript.append(f"[tool {m.get('name')}] {m['content']}")
         elif m.get("content"):
             transcript.append(f"{role}: {m['content']}")
-    body = "\n".join(transcript)
+    body = chr(10).join(transcript)
     resp = provider.complete(
         system=instruction,
         messages=[{"role": "user", "content": body}],
         tools=[])
-    summary = resp.text or ""
-    return _scrub_numeric(summary) if on else summary
+    return _transform_summary(resp.text or "")

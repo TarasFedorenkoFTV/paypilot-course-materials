@@ -10,10 +10,24 @@ services:
       - LLM_MODEL=${LLM_MODEL:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      # traces are mirrored to Phoenix; the stand works without it too
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://phoenix:6006
+      - OTEL_SERVICE_NAME=paypilot-stand
     volumes:
       - stand-data:/stand/data
       - stand-traces:/stand/traces
+    depends_on: [phoenix]
+
+  # Arize Phoenix — the trace UI the course reads (documented port 6006)
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    ports: ["6006:6006"]
+    environment:
+      - PHOENIX_WORKING_DIR=/phoenix-data
+    volumes:
+      - phoenix-data:/phoenix-data
 
 volumes:
   stand-data:
   stand-traces:
+  phoenix-data:

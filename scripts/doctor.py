@@ -47,6 +47,28 @@ def main() -> int:
         check("llm provider", FAIL,
               f"unknown LLM_PROVIDER={provider!r} (mock | anthropic | openai)")
 
+    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+    if endpoint:
+        try:
+            import httpx
+            r = httpx.get(endpoint.rstrip("/"), timeout=5)
+            check("phoenix (trace UI)", OK if r.status_code < 500 else WARN,
+                  endpoint)
+        except Exception:
+            check("phoenix (trace UI)", WARN,
+                  f"{endpoint} unreachable — traces still land in traces/traces.jsonl "
+                  "and /api/_test/traces")
+    else:
+        check("phoenix (trace UI)", WARN,
+              "OTEL_EXPORTER_OTLP_ENDPOINT not set; the JSONL/API trace surface "
+              "still works")
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for artefact in ("prompts/base.v1.md", "specs/requirements/US-01.md"):
+        path = os.path.join(root, artefact)
+        check(f"artefact: {artefact}", OK if os.path.exists(path) else FAIL,
+              "" if os.path.exists(path) else "missing — L01 lab needs it")
+
     clock = os.environ.get("CLOCK_OVERRIDE", "")
     check("clock override", OK if clock else WARN,
           clock or "not set — window-sensitive cases will drift with real time")

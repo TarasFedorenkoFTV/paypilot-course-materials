@@ -1,0 +1,14 @@
+Provider: anthropic  model: default
+nprob=6 ndet=5  scenarios=6
+
+defect mode           runs  profile  clean  freq%   accept
+------------------------------------------------------------
+D01    probabilistic  6     3        0      50.0    OK
+D03    probabilistic  6     3        0      50.0    OK
+D05    probabilistic  6     1        0      16.7    LOW
+D27    probabilistic  6     6        0      100.0   OK
+D08    probabilistic  6     6        0      100.0   OK
+D24    probabilistic  6     5        0      83.3    OK
+------------------------------------------------------------
+accepted 5/6   elapsed 374.0s
+report -> D:\paypilot-stand\docs\calibration-report.json  (22 defects total)

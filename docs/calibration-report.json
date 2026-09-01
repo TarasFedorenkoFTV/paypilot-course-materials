@@ -1,27 +1,27 @@
 {
   "provider": "anthropic",
   "model": "default",
-  "nprob": 12,
+  "nprob": 10,
   "ndet": 5,
-  "elapsed_s": 474.1,
+  "elapsed_s": 99.9,
   "results": [
     {
       "defect": "D01",
       "declared": "probabilistic",
-      "runs": 12,
-      "fired_profile": 8,
+      "runs": 10,
+      "fired_profile": 9,
       "fired_clean": 0,
-      "frequency_pct": 66.7,
+      "frequency_pct": 90.0,
       "isolation_ok": true,
       "accept": true
     },
     {
       "defect": "D03",
       "declared": "probabilistic",
-      "runs": 12,
-      "fired_profile": 8,
+      "runs": 6,
+      "fired_profile": 3,
       "fired_clean": 0,
-      "frequency_pct": 66.7,
+      "frequency_pct": 50.0,
       "isolation_ok": true,
       "accept": true
     },
@@ -38,10 +38,10 @@
     {
       "defect": "D05",
       "declared": "probabilistic",
-      "runs": 12,
-      "fired_profile": 6,
+      "runs": 10,
+      "fired_profile": 10,
       "fired_clean": 0,
-      "frequency_pct": 50.0,
+      "frequency_pct": 100.0,
       "isolation_ok": true,
       "accept": true
     },
@@ -59,17 +59,17 @@
       "defect": "D07",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 0,
+      "fired_profile": 12,
       "fired_clean": 0,
-      "frequency_pct": 0.0,
+      "frequency_pct": 100.0,
       "isolation_ok": true,
-      "accept": false
+      "accept": true
     },
     {
       "defect": "D08",
       "declared": "probabilistic",
-      "runs": 12,
-      "fired_profile": 12,
+      "runs": 6,
+      "fired_profile": 6,
       "fired_clean": 0,
       "frequency_pct": 100.0,
       "isolation_ok": true,
@@ -109,11 +109,11 @@
       "defect": "D13",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 0,
+      "fired_profile": 12,
       "fired_clean": 0,
-      "frequency_pct": 0.0,
+      "frequency_pct": 100.0,
       "isolation_ok": true,
-      "accept": false
+      "accept": true
     },
     {
       "defect": "D14",
@@ -188,10 +188,10 @@
     {
       "defect": "D24",
       "declared": "probabilistic",
-      "runs": 12,
-      "fired_profile": 12,
+      "runs": 6,
+      "fired_profile": 5,
       "fired_clean": 0,
-      "frequency_pct": 100.0,
+      "frequency_pct": 83.3,
       "isolation_ok": true,
       "accept": true
     },
@@ -218,8 +218,8 @@
     {
       "defect": "D27",
       "declared": "probabilistic",
-      "runs": 12,
-      "fired_profile": 12,
+      "runs": 6,
+      "fired_profile": 6,
       "fired_clean": 0,
       "frequency_pct": 100.0,
       "isolation_ok": true,

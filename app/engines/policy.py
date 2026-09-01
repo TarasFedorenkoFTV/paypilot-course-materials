@@ -4,14 +4,14 @@ mirrored into the KB corpus and course texts by the methodologist."""
 
 BASE_CURRENCY = "EUR"
 
-TIERS = ("standard", "premium", "platinum")
+TIERS = ("tier1", "tier2", "tier3")
 
 # FX spread over the mid-market rate, by tier (percent).
-FX_SPREAD_PCT = {"standard": 1.5, "premium": 1.0, "platinum": 0.5}
+FX_SPREAD_PCT = {"tier1": 1.5, "tier2": 0.9, "tier3": 0.5}
 
 # Free monthly conversion allowance, in EUR equivalent. Conversions within
 # the allowance are spread-free; beyond it the tier spread applies.
-FX_FREE_MONTHLY_ALLOWANCE_EUR = {"standard": 1000, "premium": 5000, "platinum": 20000}
+FX_FREE_MONTHLY_ALLOWANCE_EUR = {"tier1": 500, "tier2": 1000, "tier3": 5000}
 
 # Mid-market rates to EUR (deterministic, frozen for the stand).
 RATES_TO_EUR = {
@@ -32,8 +32,8 @@ TRANSFER_FEES = {
 }
 
 # Daily / monthly outgoing transfer limits by tier, EUR equivalent.
-DAILY_LIMIT_EUR = {"standard": 5_000, "premium": 20_000, "platinum": 100_000}
-MONTHLY_LIMIT_EUR = {"standard": 50_000, "premium": 200_000, "platinum": 1_000_000}
+DAILY_LIMIT_EUR = {"tier1": 5_000, "tier2": 20_000, "tier3": 100_000}
+MONTHLY_LIMIT_EUR = {"tier1": 50_000, "tier2": 200_000, "tier3": 1_000_000}
 
 # Dispute reason codes → chargeback window in days from the transaction date.
 DISPUTE_WINDOWS_DAYS = {

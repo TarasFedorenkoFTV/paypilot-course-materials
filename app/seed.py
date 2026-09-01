@@ -16,16 +16,16 @@ SEED_VERSION = "1.0.0"
 
 CUSTOMERS = [
     # id, name, email, tier, compliance_hold, fx_allowance_used_eur (current month)
-    ("CUS-0001", "Alice Novak", "alice.novak@example.com", "standard", 0, 120.0),
-    ("CUS-0002", "Borys Tkachenko", "b.tkachenko@example.com", "premium", 0, 800.0),
-    ("CUS-0003", "Clara Fischer", "clara.fischer@example.com", "platinum", 0, 2500.0),
-    ("CUS-0004", "Danylo Kovalenko", "d.kovalenko@example.com", "standard", 0, 0.0),
-    ("CUS-0005", "Emma Rossi", "emma.rossi@example.com", "premium", 0, 5000.0),
-    ("CUS-0006", "Farid Aliyev", "farid.aliyev@example.com", "standard", 1, 50.0),
-    ("CUS-0007", "Greta Lindqvist", "greta.lindqvist@example.com", "premium", 0, 0.0),
-    ("CUS-0008", "Hugo Martins", "hugo.martins@example.com", "standard", 0, 300.0),
-    ("CUS-0009", "Iryna Shevchuk", "iryna.shevchuk@example.com", "standard", 0, 0.0),
-    ("CUS-0010", "Jonas Weber", "jonas.weber@example.com", "platinum", 0, 15000.0),
+    ("CUS-0001", "Alice Novak", "alice.novak@example.com", "tier1", 0, 120.0),
+    ("CUS-0002", "Borys Tkachenko", "b.tkachenko@example.com", "tier2", 0, 800.0),
+    ("CUS-0003", "Clara Fischer", "clara.fischer@example.com", "tier3", 0, 2500.0),
+    ("CUS-0004", "Danylo Kovalenko", "d.kovalenko@example.com", "tier1", 0, 0.0),
+    ("CUS-0005", "Emma Rossi", "emma.rossi@example.com", "tier2", 0, 5000.0),
+    ("CUS-0006", "Farid Aliyev", "farid.aliyev@example.com", "tier1", 1, 50.0),
+    ("CUS-0007", "Greta Lindqvist", "greta.lindqvist@example.com", "tier2", 0, 0.0),
+    ("CUS-0008", "Hugo Martins", "hugo.martins@example.com", "tier1", 0, 300.0),
+    ("CUS-0009", "Iryna Shevchuk", "iryna.shevchuk@example.com", "tier1", 0, 0.0),
+    ("CUS-0010", "Jonas Weber", "jonas.weber@example.com", "tier3", 0, 15000.0),
 ]
 
 ACCOUNTS = [

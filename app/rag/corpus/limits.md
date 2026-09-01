@@ -8,9 +8,9 @@ different windows.
 
 | Tier | Daily limit | Monthly limit |
 |---|---|---|
-| Standard | EUR 5,000 | EUR 50,000 |
-| Premium | EUR 20,000 | EUR 200,000 |
-| Platinum | EUR 100,000 | EUR 1,000,000 |
+| Tier 1 | EUR 5,000 | EUR 50,000 |
+| Tier 2 | EUR 20,000 | EUR 200,000 |
+| Tier 3 | EUR 100,000 | EUR 1,000,000 |
 
 ## How the remainder is computed
 The daily remainder equals the daily limit minus settled outgoing transfers

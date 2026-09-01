@@ -5,16 +5,16 @@ from app.engines import disputes, fx, limits, policy
 
 
 def test_fx_quote_within_allowance_is_spread_free():
-    q = fx.quote(100, "EUR", "USD", "standard", allowance_used_eur=0)
+    q = fx.quote(100, "EUR", "USD", "tier1", allowance_used_eur=0)
     assert q.allowance_applied is True
     assert q.spread_pct == 0.0
     assert q.final_amount == q.gross_amount
 
 
 def test_fx_quote_beyond_allowance_applies_tier_spread():
-    q = fx.quote(1000, "EUR", "USD", "standard", allowance_used_eur=900)
+    q = fx.quote(1000, "EUR", "USD", "tier1", allowance_used_eur=900)
     assert q.allowance_applied is False
-    assert q.spread_pct == policy.FX_SPREAD_PCT["standard"]
+    assert q.spread_pct == policy.FX_SPREAD_PCT["tier1"]
     assert q.final_amount == q.gross_amount - q.spread_amount
     assert round(q.spread_amount, 6) == round(q.gross_amount * 0.015, 6)
 
@@ -35,7 +35,7 @@ def test_limits_daily_vs_monthly_are_different_numbers():
         {"date": date(2026, 9, 15), "amount_eur": 1000.0},
         {"date": date(2026, 9, 2), "amount_eur": 4000.0},
     ]
-    st = limits.status("standard", as_of, transfers)
+    st = limits.status("tier1", as_of, transfers)
     assert st.daily_spent_eur == 1000
     assert st.monthly_spent_eur == 5000
     assert st.daily_remaining_eur == 4000

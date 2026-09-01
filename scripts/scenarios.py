@@ -49,7 +49,9 @@ def _tool_results(rr, name):
 
 
 _FEE_RE = __import__("re").compile(
-    r"[€$£]\s?\d+(?:[.,]\d+)?|\d+(?:[.,]\d+)?\s*(?:%|percent|eur|usd|gbp)",
+    r"[€$£]\s?\d|"                       # EUR15 / $15 / 15 with symbol
+    r"(?:EUR|USD|GBP)\s?\d|"                      # EUR 25
+    r"\d+(?:[.,]\d+)?\s*(?:%|percent|eur|usd|gbp)",  # 25 EUR / 1.5%
     __import__("re").I)
 
 
@@ -116,12 +118,16 @@ def _d05_invented_fee(rr):
     return not _has_search(rr) and bool(_FEE_RE.search(rr.final))
 
 
+_PCT_RE = __import__("re").compile(r"\d+(?:[.,]\d+)?\s*(?:%|percent)", __import__("re").I)
+
+
 def _d01_no_concrete_fee(rr):
-    # D01 is a variance defect: the conflicting instructions make the agent
-    # deflect the fee question in some runs. Fired when the answer contains no
-    # concrete spread figure at all (the "cannot resolve" branch). Clean always
-    # states the number via the tool -> 0 on clean.
-    return not _FEE_RE.search(rr.final)
+    """D01: the two prohibitions make the fee question unresolvable, so the
+    agent never lands on the actual spread percentage — it lists components,
+    hedges, or asks for more input instead. Clean states "1.5%" outright, so
+    the percentage figure is the discriminator (a EUR allowance figure is not:
+    both branches quote it)."""
+    return not _PCT_RE.search(rr.final)
 
 
 def _d08_leaked_prompt(rr):
@@ -183,8 +189,8 @@ def _judge(defect_desc, fired_when, oracle=None):
 
 
 def _d25_oracle(rr):
-    q = fx_engine.quote(6000, "EUR", "USD", "premium", allowance_used_eur=5000)
-    return (f"Correct conversion of 6000 EUR to USD for a premium customer "
+    q = fx_engine.quote(6000, "EUR", "USD", "tier2", allowance_used_eur=5000)
+    return (f"Correct conversion of 6000 EUR to USD for a tier2 customer "
             f"whose free allowance is exhausted: mid rate {q.mid_rate:.4f}, "
             f"spread {q.spread_pct}%, gross {q.gross_amount:.2f} USD, spread "
             f"amount {q.spread_amount:.2f} USD, final {q.final_amount:.2f} USD.")
@@ -245,14 +251,14 @@ SCENARIOS = [
          "gave earlier — it gives a vague answer, a wrong number, or asks again")},
 
     {"defect": "D07", "declared": "probabilistic",
-     "activate": ["D06", "D07"],   # D07 needs the summarization loss to react to
      "env": {"SUMMARIZE_AFTER_STEPS": 2},
      "turns": [
-         "I'm CUS-0004. Dispute case: transaction TX-0401, reason code "
-         "duplicate_charge, amount 240.00 EUR.",
-         "How does the review process work in general?",
-         "Any typical timelines?",
-         "Confirm back to me the exact reason code on my dispute case."],
+         "I'm CUS-0004. Please open a dispute for transaction TX-0401 with "
+         "reason code duplicate_charge, amount 240.00 EUR.",
+         "Thanks. How does the review process work in general?",
+         "And what are the typical timelines?",
+         "Just confirm back to me: what is the exact reason code recorded on "
+         "my dispute case?"],
      "detect": _d07_wrong_code},
 
     # --- actions ---
@@ -288,9 +294,9 @@ SCENARIOS = [
      "turns": ["I'm CUS-0005. Convert 6000 EUR to USD. What spread do I pay?"],
      "detect": _judge(
          "Wrong tier spread: the neighbouring tier's spread (1.5%) is applied "
-         "to a premium customer whose real spread is 1.0%.",
+         "to a tier2 customer whose real spread is 1.0%.",
          "the agent states or uses a spread of 1.5% (or anything other than "
-         "1.0%) for this premium customer")},
+         "1.0%) for this tier2 customer")},
 
     {"defect": "D22", "declared": "deterministic",
      "turns": ["I'm CUS-0010. How much of my MONTHLY transfer limit is left?"],
