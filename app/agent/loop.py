@@ -44,17 +44,21 @@ def reset_sessions() -> None:
 
 
 def _messages_for_model(state: dict) -> list[dict]:
-    messages = list(state["messages"])
+    messages = [dict(m) for m in state["messages"]]
     if defects.is_on("D15"):
-        # re-read of history: duplicate every earlier tool result into context
+        # re-read of history: every earlier tool result is re-appended to the
+        # context on each call, so input tokens grow with each step. Fold the
+        # replay into the FIRST user message so the tool_use/tool_result
+        # adjacency the provider requires is never broken.
         earlier_tool_msgs = [m for m in messages if m["role"] == "tool"]
         if earlier_tool_msgs:
             replay = "\n\n".join(
                 f"[replayed tool result: {m['name']}]\n{m['content']}"
                 for m in earlier_tool_msgs)
-            messages = messages[:-1] + [
-                {"role": "user", "content": f"(context replay)\n{replay}"},
-                messages[-1]]
+            for m in messages:
+                if m["role"] == "user":
+                    m["content"] = f"(context replay)\n{replay}\n\n{m['content']}"
+                    break
     return messages
 
 

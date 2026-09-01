@@ -1,0 +1,45 @@
+Provider: anthropic  model: default
+nprob=12 ndet=5  scenarios=22
+
+defect mode           runs  profile  clean  freq%   accept
+------------------------------------------------------------
+D01    probabilistic  12    1        0      8.3     LOW
+D03    probabilistic  12    0        0      0.0     LOW
+D04    probabilistic  12    4        5      33.3    ISO!
+D05    probabilistic  12    12       12     100.0   ISO!
+D25    probabilistic  12    12       12     100.0   ISO!
+D06    probabilistic  12    10       0      83.3    OK
+D07    probabilistic  12    0        0      0.0     LOW
+D12    probabilistic  12    0        0      0.0     LOW
+D13    probabilistic  12    0        0      0.0     LOW
+D27    probabilistic  12    12       0      100.0   OK
+D19    deterministic  5     5        0      100.0   OK
+D20    deterministic  5     5        0      100.0   OK
+D22    deterministic  5     0        0      0.0     LOW
+D26    deterministic  5     5        0      100.0   OK
+D08    probabilistic  12    0        0      0.0     LOW
+D24    probabilistic  12    0        0      0.0     LOW
+D14    deterministic  5     5        0      100.0   OK
+Traceback (most recent call last):
+  File "D:\paypilot-stand\scripts\calibrate.py", line 141, in <module>
+    main()
+    ~~~~^^
+  File "D:\paypilot-stand\scripts\calibrate.py", line 120, in main
+    r = calibrate(s, args.nprob, args.ndet)
+  File "D:\paypilot-stand\scripts\calibrate.py", line 86, in calibrate
+    fired_profile = sum(run_once(scenario, True) for _ in range(n))
+  File "D:\paypilot-stand\scripts\calibrate.py", line 86, in <genexpr>
+    fired_profile = sum(run_once(scenario, True) for _ in range(n))
+                        ~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\paypilot-stand\scripts\calibrate.py", line 73, in run_once
+    out = loop.run_turn(sid, turn)
+  File "D:\paypilot-stand\app\agent\loop.py", line 87, in run_turn
+    resp = provider.complete(system, _messages_for_model(state),
+                             tools.specs())
+  File "D:\paypilot-stand\app\agent\providers\anthropic_provider.py", line 53, in complete
+    resp.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\paypilot-stand\.venv\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '400 Bad Request' for url 'https://api.anthropic.com/v1/messages'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400

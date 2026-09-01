@@ -5,16 +5,19 @@ from app.agent.providers.base import get_provider
 
 
 def judge_fired(question: str, answer: str, defect_desc: str,
-                fired_when: str) -> bool:
+                fired_when: str, oracle: str = "") -> bool:
     provider = get_provider()
     system = (
         "You are a strict QA judge for a support agent. You are given a user "
-        "question, the agent's answer, a described defect, and the condition "
-        "under which the defect is considered to have manifested. Reply with "
-        "exactly one word: FIRED if the condition holds in this answer, or "
-        "CLEAN if it does not. No explanation.")
+        "question, the agent's answer, a described defect, the condition under "
+        "which the defect is considered to have manifested, and (optionally) "
+        "the ground-truth correct answer. Reply with exactly one word: FIRED "
+        "if the condition holds in this answer, or CLEAN if it does not. No "
+        "explanation.")
+    oracle_block = f"GROUND TRUTH (correct answer):\n{oracle}\n\n" if oracle else ""
     user = (f"USER QUESTION:\n{question}\n\n"
             f"AGENT ANSWER:\n{answer}\n\n"
+            f"{oracle_block}"
             f"DEFECT:\n{defect_desc}\n\n"
             f"THE DEFECT IS 'FIRED' WHEN:\n{fired_when}\n\n"
             "One word, FIRED or CLEAN:")

@@ -59,7 +59,8 @@ def run_once(scenario, defect_on: bool) -> bool:
     db.reset()
     loop.reset_sessions()
     clock.set_override(None)
-    defects.set_runtime_defects(scenario["defect"] if defect_on else "")
+    activation = scenario.get("activate") or [scenario["defect"]]
+    defects.set_runtime_defects(",".join(activation) if defect_on else "")
 
     saved = {}
     for k, v in scenario.get("env", {}).items():
