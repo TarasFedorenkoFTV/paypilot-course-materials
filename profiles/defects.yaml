@@ -7,8 +7,8 @@ defects:
         mechanism: "Prompt forbids quoting exact fee amounts AND forbids referring the client to documentation; fee questions become unresolvable, the agent picks a branch anew each run."}
   D02: {title: Unverifiable tone requirement, layer: prompt, determinism: deterministic, iteration: 1, status: implemented,
         mechanism: "'Be empathetic' style requirement with no observable criterion; a document defect — no check can be written against it."}
-  D03: {title: Empty edge-case block, layer: prompt, determinism: probabilistic, iteration: 1, status: implemented,
-        mechanism: "No instruction for missing data; the agent confidently describes terms of a product that does not exist."}
+  D03: {title: Empty edge-case block, layer: prompt+data, determinism: probabilistic, iteration: 1, status: implemented,
+        mechanism: "Missing edge-case instruction (overlay) combined with a poisoned retrieval fragment: search affirms any product the query names with plausible terms, so the agent confidently describes a product that does not exist."}
   D04: {title: True but off-topic, layer: prompt, determinism: probabilistic, iteration: 1, status: planned,
         mechanism: "Answer is factually correct and grounded in context but answers a different question."}
   D05: {title: On-topic but invented, layer: prompt, determinism: probabilistic, iteration: 1, status: planned,

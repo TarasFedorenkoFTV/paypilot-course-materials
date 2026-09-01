@@ -1,17 +1,17 @@
 {
   "provider": "anthropic",
   "model": "default",
-  "nprob": 10,
+  "nprob": 12,
   "ndet": 5,
-  "elapsed_s": 47.8,
+  "elapsed_s": 1215.0,
   "results": [
     {
       "defect": "D01",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 0,
-      "fired_clean": 2,
-      "frequency_pct": 0.0,
+      "fired_profile": 3,
+      "fired_clean": 1,
+      "frequency_pct": 25.0,
       "isolation_ok": false,
       "accept": false
     },
@@ -19,9 +19,9 @@
       "defect": "D03",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 0,
+      "fired_profile": 1,
       "fired_clean": 0,
-      "frequency_pct": 0.0,
+      "frequency_pct": 8.3,
       "isolation_ok": true,
       "accept": false
     },
@@ -29,10 +29,10 @@
       "defect": "D04",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 0,
-      "fired_clean": 0,
-      "frequency_pct": 0.0,
-      "isolation_ok": true,
+      "fired_profile": 4,
+      "fired_clean": 1,
+      "frequency_pct": 33.3,
+      "isolation_ok": false,
       "accept": false
     },
     {
@@ -59,9 +59,9 @@
       "defect": "D07",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 2,
+      "fired_profile": 1,
       "fired_clean": 0,
-      "frequency_pct": 16.7,
+      "frequency_pct": 8.3,
       "isolation_ok": true,
       "accept": false
     },
@@ -69,11 +69,11 @@
       "defect": "D08",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 0,
+      "fired_profile": 12,
       "fired_clean": 0,
-      "frequency_pct": 0.0,
+      "frequency_pct": 100.0,
       "isolation_ok": true,
-      "accept": false
+      "accept": true
     },
     {
       "defect": "D10",
@@ -189,11 +189,11 @@
       "defect": "D24",
       "declared": "probabilistic",
       "runs": 12,
-      "fired_profile": 7,
-      "fired_clean": 1,
-      "frequency_pct": 58.3,
-      "isolation_ok": false,
-      "accept": false
+      "fired_profile": 12,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
     },
     {
       "defect": "D25",

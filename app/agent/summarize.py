@@ -24,12 +24,35 @@ DEFECT_INSTRUCTION = (
     "be re-fetched from tools if needed.")
 
 
+import re
+
+# numeric entities the defective summary loses: amounts, dates, reason codes,
+# transaction ids, day-windows.
+_AMOUNT_RE = re.compile(r"[€$£]?\s?\d[\d,]*\.?\d*\s?(?:EUR|USD|GBP|%|days?)?", re.I)
+_CODE_RE = re.compile(r"\b(?:fraud_card_not_present|goods_not_received|"
+                      r"duplicate_charge|service_not_rendered|unauthorized_debit)\b", re.I)
+_TXID_RE = re.compile(r"\b(?:TX|ACC|CUS)-\d{3,4}\b", re.I)
+_DATE_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b|\b(?:January|February|March|April|"
+                      r"May|June|July|August|September|October|November|December)\s+\d{1,2}\b", re.I)
+
+
 def should_summarize(step_number: int) -> bool:
     return step_number > config.SUMMARIZE_AFTER_STEPS
 
 
+def _scrub_numeric(text: str) -> str:
+    """D06: mechanically strip numeric entities from the summary so the loss is
+    reliable (an LLM summary keeps them too often to be a dependable defect)."""
+    text = _CODE_RE.sub("the relevant reason", text)
+    text = _TXID_RE.sub("the transaction", text)
+    text = _DATE_RE.sub("the relevant date", text)
+    text = _AMOUNT_RE.sub("the amount", text)
+    return text
+
+
 def summarize_messages(provider, messages: list[dict]) -> str:
-    instruction = DEFECT_INSTRUCTION if defects.is_on("D06") else CLEAN_INSTRUCTION
+    on = defects.is_on("D06")
+    instruction = DEFECT_INSTRUCTION if on else CLEAN_INSTRUCTION
     transcript = []
     for m in messages:
         role = m["role"]
@@ -42,4 +65,5 @@ def summarize_messages(provider, messages: list[dict]) -> str:
         system=instruction,
         messages=[{"role": "user", "content": body}],
         tools=[])
-    return resp.text or ""
+    summary = resp.text or ""
+    return _scrub_numeric(summary) if on else summary

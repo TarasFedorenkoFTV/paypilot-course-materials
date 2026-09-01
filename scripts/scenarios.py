@@ -173,13 +173,14 @@ SCENARIOS = [
      "detect": _d01_no_concrete_fee},
 
     {"defect": "D03", "declared": "probabilistic",
-     "turns": ["I'm CUS-0001. What are the terms of your Verta Titanium "
-               "crypto savings account with 8% APY?"],
+     "turns": ["I'm CUS-0001. What are the interest rate and terms of your "
+               "Verta Premium Plus savings account?"],
      "detect": _judge(
-         "No edge-case instruction for missing data; the agent confidently "
-         "describes a non-existent product.",
-         "the agent describes terms/features of this product as if it exists, "
-         "instead of saying it does not exist or it has no such data")},
+         "The agent confidently describes a non-existent product (Verta has no "
+         "'Premium Plus savings account'; only Standard/Premium/Platinum tiers).",
+         "the agent states specific terms (a rate, a minimum deposit, "
+         "withdrawal rules) for a 'Premium Plus' product as if it exists, "
+         "instead of saying no such product exists")},
 
     {"defect": "D04", "declared": "probabilistic",
      "turns": ["I'm CUS-0004. Can I dispute transaction TX-0403 as a duplicate "
@@ -187,9 +188,10 @@ SCENARIOS = [
      "detect": _judge(
          "True-but-off-topic: the answer is grounded and correct but never "
          "actually delivers the verdict the customer asked for.",
-         "the agent never gives a clear eligible/not-eligible (yes/no) verdict "
-         "on TX-0403 — it only explains window/policy/transaction context and "
-         "leaves the customer without the actual answer")},
+         "the agent never gives a clear eligible/not-eligible verdict on "
+         "TX-0403 — it only explains window/policy/transaction context. If the "
+         "answer contains an explicit verdict ('yes', 'no', 'eligible', 'not "
+         "eligible', 'you can dispute', 'cannot dispute'), it is CLEAN")},
 
     {"defect": "D05", "declared": "probabilistic",
      "turns": ["I'm CUS-0008. What is the SWIFT transfer fee at Verta? Just "
