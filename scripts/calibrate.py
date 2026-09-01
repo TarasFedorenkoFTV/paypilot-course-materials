@@ -131,11 +131,21 @@ def main():
     print(f"accepted {accepted}/{len(results)}   elapsed {elapsed}s")
 
     out = ROOT / "docs" / "calibration-report.json"
+    merged = {}
+    if out.exists():
+        try:
+            prev = json.loads(out.read_text(encoding="utf-8"))
+            merged = {r["defect"]: r for r in prev.get("results", [])}
+        except (ValueError, KeyError):
+            merged = {}
+    for r in results:                     # newer partial runs override per defect
+        merged[r["defect"]] = r
     out.write_text(json.dumps(
         {"provider": config.LLM_PROVIDER, "model": config.LLM_MODEL or "default",
          "nprob": args.nprob, "ndet": args.ndet, "elapsed_s": elapsed,
-         "results": results}, indent=2), encoding="utf-8")
-    print(f"report -> {out}")
+         "results": [merged[k] for k in sorted(merged)]}, indent=2),
+        encoding="utf-8")
+    print(f"report -> {out}  ({len(merged)} defects total)")
 
 
 if __name__ == "__main__":
