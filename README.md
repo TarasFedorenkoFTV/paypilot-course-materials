@@ -20,7 +20,7 @@ docker compose up --build -d  # або: make dev (локально без docker
 |---|---|
 | Чат з агентом | `POST /chat` `{"message": "...", "session_id": "..."}` |
 | Тестове API | `GET/PUT /api/_test/*` (див. нижче) |
-| Трасування | `GET /api/_test/traces/{request_id}` + файл `traces/traces.jsonl` |
+| Трасування | Phoenix UI на `http://localhost:6006` + `GET /api/_test/traces/{request_id}` + `traces/traces.jsonl` |
 
 ## Змінні оточення
 
@@ -45,12 +45,14 @@ docker compose up --build -d  # або: make dev (локально без docker
 | `POST /api/_test/reset` | скидання стану до seed |
 | `GET /api/_test/prompt` | зібраний system prompt + активні overlay |
 | `GET /api/_test/tools` | схеми інструментів (name, description, inputSchema) |
+| `GET /api/_test/specs` | документи вимог (US-01) — артефакт аудиту L01 |
 | `GET /api/_test/traces` | останні трейси; `/{request_id}` — дерево спанів |
 
 ## Структура
 
 ```
-prompts/base.v1.md       версіонований системний промпт (артефакт L01)
+prompts/base.v1.md       версіонований системний промпт: вісім блоків анатомії (L01)
+specs/requirements/      user story US-01 — другий артефакт аудиту L01
 prompts/overlays/Dxx.md  overlay-файли дефектів рівня специфікації
 profiles/profiles.yaml   профілі занять -> дефекти
 profiles/defects.yaml    реєстр дефектів D01–D27 (механізм, шар, режим)
@@ -64,11 +66,25 @@ scripts/doctor.py        діагностика оточення
 
 ## Статус реалізації дефектів
 
-Детермінованих (код/конфіг) реалізовано й покрито тестами: D10, D11, D14,
-D15, D16, D17, D19, D20, D22, D26. Промпт-шар (overlay) реалізовано: D01,
-D02, D03, D08, D24, D27 — **коридори частот калібруються на живому
-провайдері** (наступний етап). Заплановано: D04–D07, D12, D13, D18, D25.
-Друга ітерація (поза обсягом): D21, D23.
+Реалізовано всі **24 дефекти першої ітерації**. Заміряні частоти —
+`docs/calibration-report.json`, розгорнутий каталог — `docs/defect-catalog.md`.
+D02 (документний дефект), D09 (покрито юніт-тестом) і D18 (набір фікстур
+`app/fixtures/d18_judge_pairs.json`) за задумом ТЗ не міряються живим прогоном.
+Друга ітерація поза обсягом: D21, D23.
+
+Приймальний прогін:
+
+```bash
+python scripts/calibrate.py              # усі дефекти
+python scripts/calibrate.py --only D19   # один
+python scripts/gen_catalog.py            # оновити каталог
+```
+
+## Звірка з навчальними матеріалами
+
+Профілі занять і доменні числа звірені з 17 лонгрідами курсу (`Grids/*.pdf`).
+Усе, що зроблено інакше, ніж у текстах, — у `docs/divergences.md`; це робочий
+вхід методолога (ТЗ §9, п. 6).
 
 ## Тести стенду
 
