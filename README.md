@@ -12,13 +12,15 @@ python scripts/doctor.py      # діагностика оточення
 docker compose up --build -d  # або: make dev (локально без docker)
 ```
 
-Перевірка: `curl http://localhost:8000/health`
+Чат відкривається на **http://localhost:8000** — там же перемикач профілів,
+точкове вмикання дефектів, керування часом і дерево спанів останнього ходу.
+Трейси також у Phoenix на **http://localhost:6006**.
 
 ## Поверхні (ТЗ §3.2)
 
 | Поверхня | Де |
 |---|---|
-| Чат з агентом | `POST /chat` `{"message": "...", "session_id": "..."}` |
+| Чат з агентом | UI на `http://localhost:8000` · API `POST /chat` |
 | Тестове API | `GET/PUT /api/_test/*` (див. нижче) |
 | Трасування | Phoenix UI на `http://localhost:6006` + `GET /api/_test/traces/{request_id}` + `traces/traces.jsonl` |
 
@@ -46,6 +48,8 @@ docker compose up --build -d  # або: make dev (локально без docker
 | `GET /api/_test/prompt` | зібраний system prompt + активні overlay |
 | `GET /api/_test/tools` | схеми інструментів (name, description, inputSchema) |
 | `GET /api/_test/specs` | документи вимог (US-01) — артефакт аудиту L01 |
+| `PUT /api/_test/profile` | перемикання профілю заняття без рестарту |
+| `POST /api/_test/compare` | той самий запит на clean і на профілі, поруч |
 | `GET /api/_test/traces` | останні трейси; `/{request_id}` — дерево спанів |
 
 ## Структура
@@ -66,18 +70,20 @@ scripts/doctor.py        діагностика оточення
 
 ## Статус реалізації дефектів
 
-Реалізовано всі **24 дефекти першої ітерації**. Заміряні частоти —
+Реалізовано **всі 27 дефектів** — 24 першої ітерації плюс D21 і D23 з другої
+(зроблені понад обсяг ТЗ). Заміряні частоти —
 `docs/calibration-report.json`, розгорнутий каталог — `docs/defect-catalog.md`.
 D02 (документний дефект), D09 (покрито юніт-тестом) і D18 (набір фікстур
 `app/fixtures/d18_judge_pairs.json`) за задумом ТЗ не міряються живим прогоном.
-Друга ітерація поза обсягом: D21, D23.
+
 
 Приймальний прогін:
 
 ```bash
-python scripts/calibrate.py              # усі дефекти
-python scripts/calibrate.py --only D19   # один
-python scripts/gen_catalog.py            # оновити каталог
+make calibrate                     # усі дефекти: профіль проти clean
+python scripts/calibrate.py --only D19   # один дефект
+make catalog                       # оновити каталог із заміряного звіту
+make smoke                         # перевірити всі поверхні без ключа
 ```
 
 ## Звірка з навчальними матеріалами
@@ -89,5 +95,10 @@ python scripts/gen_catalog.py            # оновити каталог
 ## Тести стенду
 
 ```bash
-python -m pytest tests/ -q
+make test    # юніт-тести рушіїв, дефектів і API
+make smoke   # наскрізна перевірка всіх поверхонь (без ключа)
 ```
+
+CI: `.github/workflows/stand-ci.yml` ганяє doctor, тести, smoke і збірку
+Docker-образу на mock-провайдері — стенд придатний до CI без API-ключа
+(ТЗ §11: власний гейт студент будує сам на L13).

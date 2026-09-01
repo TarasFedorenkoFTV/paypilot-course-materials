@@ -1,0 +1,50 @@
+name: stand-ci
+
+# The stand's own CI. Students build their eval gate separately (L13); this
+# workflow only proves the stand itself is CI-ready: it boots, seeds, serves
+# and behaves deterministically without an API key.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    env:
+      PROFILE: clean
+      LLM_PROVIDER: mock          # no key needed: the stand is testable offline
+      CLOCK_OVERRIDE: "2026-09-15T10:00:00Z"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Environment diagnostics
+        run: python scripts/doctor.py
+      - name: Unit and defect tests
+        run: python -m pytest tests/ -q
+      - name: Smoke the API surface
+        run: python scripts/ci_smoke.py
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t paypilot-stand .
+      - name: Boot and probe
+        run: |
+          docker run -d --name stand -p 8000:8000 \
+            -e LLM_PROVIDER=mock -e PROFILE=lesson-01 \
+            -e CLOCK_OVERRIDE=2026-09-15T10:00:00Z paypilot-stand
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8000/health && break || sleep 2
+          done
+          curl -fsS http://localhost:8000/health | grep -q '"profile":"lesson-01"'
+          curl -fsS http://localhost:8000/api/_test/defects | grep -q 'D01'
+          docker rm -f stand
