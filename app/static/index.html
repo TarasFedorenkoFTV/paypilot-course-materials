@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PayPilot — навчальний стенд</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --text:#e6e8ec; --muted:#9aa3b2; --accent:#4f9cf9; --warn:#f2b45c;
+    --bad:#e5646d; --good:#5ec38a; --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;height:100vh;display:flex;background:var(--bg);color:var(--text);
+       font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .chat{flex:1;display:flex;flex-direction:column;min-width:0}
+  .chat-head{padding:12px 18px;border-bottom:1px solid var(--line);
+             display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .chat-head h1{font-size:15px;margin:0;font-weight:600}
+  .pill{font:11px var(--mono);padding:3px 8px;border-radius:99px;
+        background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .pill.on{color:var(--warn);border-color:#4a3a1e}
+  .pill.clean{color:var(--good);border-color:#1e4a33}
+  .msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+  .msg{max-width:760px;padding:10px 14px;border-radius:10px;white-space:pre-wrap;
+       word-wrap:break-word}
+  .msg.user{align-self:flex-end;background:#24405f}
+  .msg.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--line)}
+  .msg.sys{align-self:center;color:var(--muted);font-size:12px;background:none;
+           border:1px dashed var(--line)}
+  .meta{margin-top:6px;font:11px var(--mono);color:var(--muted);display:flex;
+        gap:10px;flex-wrap:wrap}
+  .meta a{color:var(--accent);cursor:pointer;text-decoration:none}
+  .composer{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--line)}
+  .composer input{flex:1;background:var(--panel);border:1px solid var(--line);
+                  color:var(--text);padding:10px 12px;border-radius:8px;font:inherit}
+  .composer input:focus{outline:none;border-color:var(--accent)}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+         padding:8px 12px;border-radius:8px;cursor:pointer;font:inherit}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:#08111e;border-color:var(--accent);
+                 font-weight:600}
+  button:disabled{opacity:.5;cursor:default}
+  .side{width:400px;border-left:1px solid var(--line);background:var(--panel);
+        overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:18px}
+  .side h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+           color:var(--muted);margin:0 0 8px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  select,input[type=text]{background:var(--panel2);border:1px solid var(--line);
+    color:var(--text);padding:7px 9px;border-radius:7px;font:inherit;flex:1;min-width:0}
+  .defects{display:flex;flex-wrap:wrap;gap:6px}
+  .dchip{font:11px var(--mono);padding:4px 7px;border-radius:6px;cursor:pointer;
+         background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .dchip.active{background:#3a2c14;border-color:var(--warn);color:var(--warn)}
+  .dchip.profile{background:#2a1f38;border-color:#6b4ba8;color:#c4a5f0;cursor:default}
+  .tree{font:12px var(--mono);white-space:pre;overflow-x:auto;color:var(--muted)}
+  .tree .sp{cursor:pointer;color:var(--text)}
+  .tree .sp:hover{color:var(--accent)}
+  .tree .tool{color:var(--warn)} .tree .llm{color:var(--accent)}
+  .attrs{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+         padding:10px;font:11px var(--mono);white-space:pre-wrap;word-break:break-word;
+         max-height:280px;overflow-y:auto;color:var(--muted)}
+  .hint{font-size:12px;color:var(--muted)}
+  .seed{font:11px var(--mono);color:var(--muted);line-height:1.7}
+  .seed b{color:var(--text);font-weight:600}
+  .err{color:var(--bad)}
+  .cmp{align-self:stretch;max-width:none;display:grid;grid-template-columns:1fr 1fr;
+       gap:12px;background:none;border:none;padding:0}
+  .cmp .col{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+            padding:12px;white-space:pre-wrap}
+  .cmp .col.dirty{border-color:#4a3a1e}
+  .cmp h3{margin:0 0 8px;font:11px var(--mono);letter-spacing:.05em;color:var(--muted)}
+  .cmp .col.dirty h3{color:var(--warn)}
+  code{font:11px var(--mono);background:var(--panel2);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="chat">
+  <div class="chat-head">
+    <h1>PayPilot</h1>
+    <span class="pill" id="pProfile">—</span>
+    <span class="pill" id="pDefects">—</span>
+    <span class="pill" id="pClock">—</span>
+    <span class="pill" id="pProvider">—</span>
+    <span style="flex:1"></span>
+    <button onclick="newSession()">Нова сесія</button>
+  </div>
+  <div class="msgs" id="msgs"></div>
+  <div class="composer">
+    <input id="inp" placeholder="Напишіть повідомлення…"
+           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}">
+    <button class="primary" id="sendBtn" onclick="send()">Надіслати</button>
+    <button id="cmpBtn" onclick="compare()" title="Той самий запит на clean і на профілі">clean vs профіль</button>
+  </div>
+</div>
+
+<div class="side">
+  <div>
+    <h2>Профіль заняття</h2>
+    <div class="row">
+      <select id="profileSel" onchange="setProfile()"></select>
+      <button onclick="resetState()">Скинути стан</button>
+    </div>
+  </div>
+
+  <div>
+    <h2>Дефекти <span class="hint" id="dCount"></span></h2>
+    <div class="defects" id="defects"></div>
+    <div class="hint" style="margin-top:8px">
+      Фіолетові — з профілю. Клік по решті вмикає точково (<code>DEFECTS=</code>).
+    </div>
+  </div>
+
+  <div>
+    <h2>Час прогону</h2>
+    <div class="row">
+      <input type="text" id="clockInp" placeholder="2026-09-15T10:00:00Z">
+      <button onclick="setClock(false)">Задати</button>
+      <button onclick="setClock(true)">Скинути</button>
+    </div>
+    <div class="hint" style="margin-top:6px">
+      Вікна оскарження рахуються від цієї дати.
+    </div>
+  </div>
+
+  <div>
+    <h2>Трейс останнього ходу</h2>
+    <div class="tree" id="tree">— зробіть запит —</div>
+    <div class="attrs" id="attrs" style="margin-top:8px;display:none"></div>
+  </div>
+
+  <div>
+    <h2>Seed-дані</h2>
+    <div class="seed" id="seed">завантаження…</div>
+  </div>
+</div>
+
+<script>
+const $ = function(id){ return document.getElementById(id); };
+let sessionId = null, lastTrace = null;
+let extraDefects = new Set(), profileDefects = new Set();
+
+const ALL_IDS = ['D01','D02','D03','D04','D05','D06','D07','D08','D09','D10','D11',
+  'D12','D13','D14','D15','D16','D17','D18','D19','D20','D21','D22','D23','D24',
+  'D25','D26','D27'];
+
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  if(!r.ok){ throw new Error((await r.text()).slice(0,200)); }
+  return r.json();
+}
+
+function jpost(body){
+  return {method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(body)};
+}
+function jput(body){
+  return {method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(body)};
+}
+
+function addMsg(text, cls){
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.textContent = text;
+  $('msgs').appendChild(d);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
+  return d;
+}
+
+async function send(){
+  const inp = $('inp'), text = inp.value.trim();
+  if(!text) return;
+  inp.value = '';
+  addMsg(text, 'user');
+  $('sendBtn').disabled = true;
+  const thinking = addMsg('…', 'bot');
+  try{
+    const res = await api('/chat', jpost({message:text, session_id:sessionId}));
+    sessionId = res.session_id;
+    thinking.textContent = res.answer || '(порожня відповідь)';
+    const u = res.usage || {};
+    const m = document.createElement('div');
+    m.className = 'meta';
+    const a = document.createElement('a');
+    a.textContent = 'трейс ' + res.request_id.slice(0,8);
+    a.onclick = function(){ loadTrace(res.request_id); };
+    m.appendChild(document.createTextNode(
+      'крок ' + res.step_number + ' · in ' + u.input_tokens +
+      ' / out ' + u.output_tokens + ' tok · '));
+    m.appendChild(a);
+    thinking.appendChild(m);
+    loadTrace(res.request_id);
+  }catch(e){
+    thinking.textContent = 'Помилка: ' + e.message;
+    thinking.classList.add('err');
+  }finally{
+    $('sendBtn').disabled = false;
+    inp.focus();
+  }
+}
+
+async function compare(){
+  const inp = $('inp'), text = inp.value.trim();
+  if(!text){ alert('Введіть запит, який треба порівняти'); return; }
+  inp.value = '';
+  addMsg(text, 'user');
+  $('cmpBtn').disabled = true; $('sendBtn').disabled = true;
+  const holder = document.createElement('div');
+  holder.className = 'msg cmp';
+  holder.textContent = 'порівнюю…';
+  $('msgs').appendChild(holder);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
+  try{
+    const d = await api('/api/_test/compare', jpost({message:text}));
+    holder.textContent = '';
+    [['clean','clean'],['profile','dirty']].forEach(function(pair){
+      const side = d[pair[0]];
+      const col = document.createElement('div');
+      col.className = 'col ' + pair[1];
+      const h = document.createElement('h3');
+      h.textContent = side.profile +
+        (side.active_defects.length ? ' · ' + side.active_defects.join(',') : ' · без дефектів');
+      col.appendChild(h);
+      col.appendChild(document.createTextNode(side.answer || '(порожньо)'));
+      const m = document.createElement('div');
+      m.className = 'meta';
+      const a = document.createElement('a');
+      a.textContent = 'трейс';
+      a.onclick = function(){ loadTrace(side.request_id); };
+      m.appendChild(document.createTextNode(
+        'in ' + side.usage.input_tokens + ' / out ' + side.usage.output_tokens + ' tok · '));
+      m.appendChild(a);
+      col.appendChild(m);
+      holder.appendChild(col);
+    });
+    sessionId = null;   // compare runs in throwaway sessions
+  }catch(e){
+    holder.textContent = 'Помилка: ' + e.message;
+    holder.classList.add('err');
+  }finally{
+    $('cmpBtn').disabled = false; $('sendBtn').disabled = false; inp.focus();
+  }
+}
+
+function newSession(){
+  sessionId = null;
+  $('msgs').innerHTML = '';
+  addMsg('Нова сесія — історія діалогу очищена', 'sys');
+}
+
+async function loadTrace(id){
+  try{
+    lastTrace = await api('/api/_test/traces/' + id);
+    renderTree(lastTrace);
+  }catch(e){
+    $('tree').textContent = 'трейс недоступний';
+  }
+}
+
+function renderTree(tree){
+  const box = $('tree');
+  box.innerHTML = '';
+  const walk = function(n, depth, path){
+    const line = document.createElement('div');
+    const span = document.createElement('span');
+    let cls = 'sp';
+    if(n.name.indexOf('tool.') === 0) cls += ' tool';
+    else if(n.name === 'llm.call') cls += ' llm';
+    span.className = cls;
+    span.textContent = '  '.repeat(depth) + n.name;
+    const p = path.slice();
+    span.onclick = function(){ showAttrs(p); };
+    line.appendChild(span);
+    if(n.duration_ms != null){
+      const t = document.createElement('span');
+      t.style.color = 'var(--muted)';
+      t.textContent = '  ' + n.duration_ms + 'ms';
+      line.appendChild(t);
+    }
+    box.appendChild(line);
+    (n.children || []).forEach(function(c, i){ walk(c, depth + 1, path.concat(i)); });
+  };
+  walk(tree, 0, []);
+  $('attrs').style.display = 'none';
+}
+
+function showAttrs(path){
+  let node = lastTrace;
+  for(const i of path) node = node.children[i];
+  $('attrs').style.display = 'block';
+  $('attrs').textContent = JSON.stringify(node.attributes, null, 2);
+}
+
+async function refreshState(){
+  const results = await Promise.all([
+    api('/api/_test/defects'), api('/health'), api('/api/_test/clock')]);
+  const d = results[0], h = results[1], c = results[2];
+  profileDefects = new Set(d.profile_defects);
+  extraDefects = new Set(d.extra_defects);
+  $('pProfile').textContent = 'profile: ' + d.profile;
+  $('pDefects').textContent = d.active.length
+    ? 'дефекти: ' + d.active.join(',') : 'дефектів немає';
+  $('pDefects').className = 'pill ' + (d.active.length ? 'on' : 'clean');
+  $('pProvider').textContent = h.provider + (h.otlp ? ' · phoenix' : '');
+  $('pClock').textContent = (c.now || '').slice(0,16).replace('T',' ');
+  $('dCount').textContent = '(активних ' + d.active.length + ')';
+
+  const sel = $('profileSel');
+  if(!sel.options.length){
+    d.known_profiles.forEach(function(p){ sel.add(new Option(p, p)); });
+  }
+  sel.value = d.profile;
+  renderDefects(d);
+}
+
+function renderDefects(d){
+  const box = $('defects');
+  box.innerHTML = '';
+  ALL_IDS.forEach(function(id){
+    const s = document.createElement('span');
+    const inProfile = profileDefects.has(id), on = extraDefects.has(id);
+    s.className = 'dchip' + (inProfile ? ' profile' : (on ? ' active' : ''));
+    s.textContent = id;
+    const info = d.details[id];
+    s.title = info ? info.title + ' · ' + info.layer + ' · ' + info.determinism : id;
+    if(!inProfile) s.onclick = function(){ toggleDefect(id); };
+    box.appendChild(s);
+  });
+}
+
+async function toggleDefect(id){
+  if(extraDefects.has(id)) extraDefects.delete(id); else extraDefects.add(id);
+  try{
+    await api('/api/_test/defects', jput({defects: Array.from(extraDefects).join(',')}));
+  }catch(e){ alert(e.message); }
+  refreshState();
+}
+
+async function setProfile(){
+  const p = $('profileSel').value;
+  await api('/api/_test/profile', jput({profile: p}));
+  addMsg('Профіль перемкнено на ' + p, 'sys');
+  refreshState();
+}
+
+async function setClock(reset){
+  const v = reset ? null : ($('clockInp').value.trim() || null);
+  try{
+    await api('/api/_test/clock', jpost({now: v}));
+    addMsg('Час прогону: ' + (v || 'реальний'), 'sys');
+    refreshState();
+  }catch(e){ alert(e.message); }
+}
+
+async function resetState(){
+  const r = await api('/api/_test/reset', {method:'POST'});
+  newSession();
+  addMsg('Стан скинуто до seed ' + r.seed_version + ': ' + r.customers +
+         ' клієнтів, ' + r.accounts + ' рахунків, ' + r.transactions +
+         ' транзакцій', 'sys');
+}
+
+async function loadSeed(){
+  try{
+    const s = await api('/api/_test/seed');
+    const byCust = {};
+    s.accounts.forEach(function(a){
+      if(!byCust[a.customer_id]) byCust[a.customer_id] = [];
+      byCust[a.customer_id].push(a);
+    });
+    $('seed').innerHTML = s.customers.map(function(c){
+      const accs = (byCust[c.id] || []).map(function(a){
+        return a.id + ' ' + a.currency; }).join(', ');
+      const hold = c.compliance_hold
+        ? ' · <span style="color:var(--bad)">hold</span>' : '';
+      return '<b>' + c.id + '</b> ' + c.tier + hold + '<br>&nbsp;&nbsp;' + accs;
+    }).join('<br>');
+  }catch(e){ $('seed').textContent = 'недоступно'; }
+}
+
+$('inp').addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+});
+
+refreshState();
+loadSeed();
+addMsg('Стенд готовий. Оберіть профіль заняття та ставте питання агенту.', 'sys');
+$('inp').focus();
+</script>
+</body>
+</html>

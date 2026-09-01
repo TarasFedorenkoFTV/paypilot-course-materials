@@ -16,6 +16,7 @@ with open(config.PROFILES_FILE, encoding="utf-8") as f:
     PROFILES: dict[str, list[str]] = yaml.safe_load(f)["profiles"]
 
 _runtime_extra: set[str] | None = None  # test-API override, replaces env DEFECTS
+_runtime_profile: str | None = None      # test-API override, replaces env PROFILE
 
 
 def _parse_list(raw: str) -> set[str]:
@@ -26,11 +27,23 @@ def _parse_list(raw: str) -> set[str]:
     return ids
 
 
+def current_profile() -> str:
+    return _runtime_profile if _runtime_profile is not None else config.PROFILE
+
+
 def _profile_defects() -> set[str]:
-    if config.PROFILE not in PROFILES:
-        raise ValueError(
-            f"Unknown PROFILE={config.PROFILE!r}. Known: {sorted(PROFILES)}")
-    return set(PROFILES[config.PROFILE])
+    name = current_profile()
+    if name not in PROFILES:
+        raise ValueError(f"Unknown PROFILE={name!r}. Known: {sorted(PROFILES)}")
+    return set(PROFILES[name])
+
+
+def set_runtime_profile(name: str | None) -> None:
+    """Test-API hook: switch the lesson profile without restarting."""
+    global _runtime_profile
+    if name is not None and name not in PROFILES:
+        raise ValueError(f"Unknown profile {name!r}. Known: {sorted(PROFILES)}")
+    _runtime_profile = name
 
 
 def active() -> set[str]:
@@ -51,7 +64,8 @@ def set_runtime_defects(raw: str | None) -> None:
 def describe() -> dict:
     act = sorted(active())
     return {
-        "profile": config.PROFILE,
+        "profile": current_profile(),
+        "known_profiles": sorted(PROFILES),
         "profile_defects": sorted(_profile_defects()),
         "extra_defects": sorted(
             _runtime_extra if _runtime_extra is not None else _parse_list(config.DEFECTS_ENV)),

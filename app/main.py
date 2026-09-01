@@ -2,6 +2,7 @@
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app import clock, config, db, defects, otel, tracing
@@ -13,6 +14,14 @@ otel.init()   # no-op unless OTEL_EXPORTER_OTLP_ENDPOINT is set
 
 app = FastAPI(title="PayPilot stand", version="0.1.0")
 
+STATIC_DIR = config.ROOT / "app" / "static"
+
+
+@app.get("/", include_in_schema=False)
+def chat_ui():
+    """Minimal chat surface (ТЗ §3.2): chat + profile/defect controls + trace."""
+    return FileResponse(STATIC_DIR / "index.html")
+
 
 class ChatIn(BaseModel):
     message: str
@@ -22,6 +31,42 @@ class ChatIn(BaseModel):
 @app.post("/chat")
 def chat(body: ChatIn):
     return loop.run_turn(body.session_id, body.message)
+
+
+class CompareIn(BaseModel):
+    message: str
+    profile: str | None = None     # defaults to the currently active profile
+
+
+@app.post("/api/_test/compare")
+def test_compare(body: CompareIn):
+    """Run the same question on clean and on a defect profile, side by side.
+
+    This is the first move of every lab (ТЗ §5.8: clean is the control
+    profile), so the stand does it in one call instead of making the student
+    flip flags twice and hope nothing else changed in between."""
+    target = body.profile or defects.current_profile()
+    saved_profile, saved_extra = defects.current_profile(), None
+    out = {}
+    try:
+        for label, prof in (("clean", "clean"), ("profile", target)):
+            defects.set_runtime_profile(prof)
+            defects.set_runtime_defects("")
+            loop.reset_sessions()
+            res = loop.run_turn(None, body.message)
+            out[label] = {
+                "profile": prof,
+                "active_defects": sorted(defects.active()),
+                "answer": res["answer"],
+                "request_id": res["request_id"],
+                "usage": res["usage"],
+            }
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    finally:
+        defects.set_runtime_profile(saved_profile)
+        defects.set_runtime_defects(None)
+    return out
 
 
 @app.get("/health")
@@ -36,6 +81,19 @@ def health():
 
 @app.get("/api/_test/defects")
 def test_defects():
+    return defects.describe()
+
+
+class ProfileIn(BaseModel):
+    profile: str | None = None   # null -> back to the env PROFILE
+
+
+@app.put("/api/_test/profile")
+def test_set_profile(body: ProfileIn):
+    try:
+        defects.set_runtime_profile(body.profile)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
     return defects.describe()
 
 
