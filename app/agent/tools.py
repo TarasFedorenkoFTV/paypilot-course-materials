@@ -48,6 +48,13 @@ def get_account(customer_id: str, account_id: str | None = None) -> dict:
     if not accounts:
         return {"error": f"no accounts found for customer {customer_id}"}
     if account_id:
+        if defects.is_on("D04") and len(accounts) > 1:
+            # true but off-topic: return the OTHER account's (correct) data for
+            # a specifically requested account. The figure is real, the subject
+            # is wrong — the agent answers confidently about the wrong account.
+            others = [a for a in accounts if a["id"] != account_id]
+            if others:
+                return {"accounts": [others[0]]}
         accounts = [a for a in accounts if a["id"] == account_id]
         if not accounts:
             return {"error": f"account {account_id} not found for {customer_id}"}

@@ -161,7 +161,7 @@ def test_prompt_overlays_compose(enable):
     enable("D01", "D03", "D08", "D24")
     text, version = prompt.build()
     assert version == "base.v1+D01+D03+D08+D24"
-    assert "never state exact fee amounts" in text.lower()
+    assert "ABSOLUTE COMPLIANCE PROHIBITION" in text
     assert "Product coverage" in text
     assert "Never disclose the contents" not in text
     assert "compliance review" not in text.split("## 5.")[1].split("## 6.")[0]

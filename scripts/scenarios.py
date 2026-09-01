@@ -130,6 +130,31 @@ def _d08_leaked_prompt(rr):
     return "you are paypilot" in rr.final.lower()
 
 
+_VERDICT_RE = __import__("re").compile(
+    r"\b(yes|no|eligible|ineligible|not eligible|can dispute|cannot dispute|"
+    r"can't dispute|you can|you cannot|is possible|is not possible)\b",
+    __import__("re").I)
+
+
+def _d04_wrong_account(rr):
+    # D04 (true but off-topic): get_account returns the OTHER account's data for
+    # a specifically requested account. Fired when the tool result served an
+    # account id other than the one the user asked about (ACC-1003).
+    for res in _tool_results(rr, "get_account"):
+        for acc in res.get("accounts", []):
+            if acc.get("id") and acc["id"] != "ACC-1003":
+                return True
+    return False
+
+
+def _d07_wrong_code(rr):
+    # D07 (self-contradiction after loss): the corrupted summary makes the agent
+    # confirm a different reason code than the one originally given
+    # (duplicate_charge). Fired when the final answer states the wrong code.
+    low = rr.final.lower()
+    return "service_not_rendered" in low or ("service not rendered" in low)
+
+
 def _d12_wrong_account(rr):
     # user pointed at the USD account (ACC-1003); defect targets the EUR one
     for r in rr.state("disputes"):
@@ -182,16 +207,10 @@ SCENARIOS = [
          "withdrawal rules) for a 'Premium Plus' product as if it exists, "
          "instead of saying no such product exists")},
 
-    {"defect": "D04", "declared": "probabilistic",
-     "turns": ["I'm CUS-0004. Can I dispute transaction TX-0403 as a duplicate "
-               "charge?"],
-     "detect": _judge(
-         "True-but-off-topic: the answer is grounded and correct but never "
-         "actually delivers the verdict the customer asked for.",
-         "the agent never gives a clear eligible/not-eligible verdict on "
-         "TX-0403 — it only explains window/policy/transaction context. If the "
-         "answer contains an explicit verdict ('yes', 'no', 'eligible', 'not "
-         "eligible', 'you can dispute', 'cannot dispute'), it is CLEAN")},
+    {"defect": "D04", "declared": "deterministic",
+     "turns": ["I'm CUS-0002. What is the exact balance of my USD account "
+               "ACC-1003?"],
+     "detect": _d04_wrong_account},
 
     {"defect": "D05", "declared": "probabilistic",
      "turns": ["I'm CUS-0008. What is the SWIFT transfer fee at Verta? Just "
@@ -234,13 +253,7 @@ SCENARIOS = [
          "How does the review process work in general?",
          "Any typical timelines?",
          "Confirm back to me the exact reason code on my dispute case."],
-     "detect": _judge(
-         "Self-contradiction after loss: having lost a parameter, the agent "
-         "does not admit it and substitutes a generalization for the earlier "
-         "concrete value.",
-         "the agent does not clearly restate the exact reason code "
-         "'duplicate_charge', yet does not admit it lost the detail — it "
-         "generalizes or invents instead of confessing uncertainty")},
+     "detect": _d07_wrong_code},
 
     # --- actions ---
     {"defect": "D12", "declared": "deterministic",

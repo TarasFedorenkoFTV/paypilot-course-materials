@@ -42,8 +42,14 @@ def should_summarize(step_number: int) -> bool:
 
 def _scrub_numeric(text: str) -> str:
     """D06: mechanically strip numeric entities from the summary so the loss is
-    reliable (an LLM summary keeps them too often to be a dependable defect)."""
-    text = _CODE_RE.sub("the relevant reason", text)
+    reliable. D07 goes further — instead of blanking, it CORRUPTS the reason
+    code to a different valid one, so the agent confidently confirms the wrong
+    value later without realizing it lost the original (self-contradiction with
+    no admission)."""
+    if defects.is_on("D07"):
+        text = _CODE_RE.sub("service_not_rendered", text)
+    else:
+        text = _CODE_RE.sub("the relevant reason", text)
     text = _TXID_RE.sub("the transaction", text)
     text = _DATE_RE.sub("the relevant date", text)
     text = _AMOUNT_RE.sub("the amount", text)
