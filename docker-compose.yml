@@ -1,0 +1,19 @@
+services:
+  stand:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      - PROFILE=${PROFILE:-clean}
+      - DEFECTS=${DEFECTS:-}
+      - CLOCK_OVERRIDE=${CLOCK_OVERRIDE:-2026-09-15T10:00:00Z}
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - LLM_MODEL=${LLM_MODEL:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - stand-data:/stand/data
+      - stand-traces:/stand/traces
+
+volumes:
+  stand-data:
+  stand-traces:

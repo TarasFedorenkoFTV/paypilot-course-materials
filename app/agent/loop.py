@@ -1,0 +1,136 @@
+"""The orchestration loop — owned and fully controlled (ТЗ §4.2).
+
+The model → tool → model cycle is explicit here because two course defects
+live inside it:
+  D14 — an empty tool result is treated as a transient failure and the same
+        call is retried, identical arguments, up to 8 times in a row; state
+        stays intact, the cost is paid in latency and tokens;
+  D15 — the full set of earlier tool results is re-appended to the context on
+        every model call, so input tokens grow with every step.
+
+Session history is kept in memory per session id. Summarization after
+SUMMARIZE_AFTER_STEPS is the configured long-history strategy (D06 hooks in
+there once live-model calibration starts)."""
+import json
+import uuid
+
+from app import config, defects
+from app.agent import prompt, tools
+from app.agent.providers.base import get_provider
+from app.tracing import RequestTrace
+
+_sessions: dict[str, dict] = {}   # session_id -> {"messages": [...], "steps": int}
+
+_EMPTY_RETRY_LIMIT = 8
+
+
+def _is_empty_result(result: dict) -> bool:
+    if not result:
+        return True
+    for value in result.values():
+        if isinstance(value, (list, dict)) and not value:
+            return True
+    return False
+
+
+def _session(session_id: str | None) -> tuple[str, dict]:
+    sid = session_id or uuid.uuid4().hex[:12]
+    state = _sessions.setdefault(sid, {"messages": [], "steps": 0})
+    return sid, state
+
+
+def reset_sessions() -> None:
+    _sessions.clear()
+
+
+def _messages_for_model(state: dict) -> list[dict]:
+    messages = list(state["messages"])
+    if defects.is_on("D15"):
+        # re-read of history: duplicate every earlier tool result into context
+        earlier_tool_msgs = [m for m in messages if m["role"] == "tool"]
+        if earlier_tool_msgs:
+            replay = "\n\n".join(
+                f"[replayed tool result: {m['name']}]\n{m['content']}"
+                for m in earlier_tool_msgs)
+            messages = messages[:-1] + [
+                {"role": "user", "content": f"(context replay)\n{replay}"},
+                messages[-1]]
+    return messages
+
+
+def run_turn(session_id: str | None, user_message: str) -> dict:
+    sid, state = _session(session_id)
+    state["steps"] += 1
+    trace = RequestTrace(sid, state["steps"])
+    provider = get_provider()
+    system, prompt_version = prompt.build()
+    trace.root.attributes["prompt.version"] = prompt_version
+    trace.root.attributes["llm.provider"] = provider.name
+
+    state["messages"].append({"role": "user", "content": user_message})
+    answer = None
+    total_in = total_out = 0
+
+    for step in range(config.MAX_AGENT_STEPS):
+        with trace.span("llm.call", **{"agent.loop_step": step}) as s:
+            resp = provider.complete(system, _messages_for_model(state),
+                                     tools.specs())
+            s.attributes.update({
+                "gen_ai.request.model": resp.model,
+                "gen_ai.usage.input_tokens": resp.input_tokens,
+                "gen_ai.usage.output_tokens": resp.output_tokens,
+            })
+        total_in += resp.input_tokens
+        total_out += resp.output_tokens
+
+        if not resp.tool_calls:
+            answer = resp.text or ""
+            state["messages"].append({"role": "assistant", "content": answer})
+            break
+
+        state["messages"].append({"role": "assistant", "content": resp.text,
+                                  "tool_calls": resp.tool_calls})
+        for tc in resp.tool_calls:
+            result = _execute_tool(trace, tc)
+            if tc["name"] == "search_knowledge_base" and "fragments" in result:
+                pass  # retrieval attributes already recorded inside _execute_tool
+            state["messages"].append({
+                "role": "tool", "tool_call_id": tc["id"], "name": tc["name"],
+                "content": json.dumps(result, ensure_ascii=False)})
+    else:
+        answer = "I could not complete this request within the step budget."
+        state["messages"].append({"role": "assistant", "content": answer})
+
+    trace.root.attributes.update({
+        "gen_ai.usage.total_input_tokens": total_in,
+        "gen_ai.usage.total_output_tokens": total_out,
+    })
+    tree = trace.finish()
+    return {"session_id": sid, "request_id": tree["request_id"],
+            "answer": answer, "step_number": state["steps"],
+            "usage": {"input_tokens": total_in, "output_tokens": total_out}}
+
+
+def _execute_tool(trace: RequestTrace, tc: dict) -> dict:
+    """One logical tool call; under D14 an empty result triggers identical
+    retries, each recorded as its own span (the loop pays, state does not)."""
+    attempts = _EMPTY_RETRY_LIMIT if defects.is_on("D14") else 1
+    result: dict = {}
+    for attempt in range(attempts):
+        with trace.span(f"tool.{tc['name']}",
+                        **{"tool.name": tc["name"],
+                           "tool.arguments": tc["arguments"],
+                           "tool.retry_attempt": attempt}) as s:
+            result = tools.dispatch(tc["name"], tc["arguments"])
+            s.attributes["tool.result"] = result
+            if tc["name"] == "search_knowledge_base" and isinstance(result, dict):
+                s.attributes.update({
+                    "retrieval.query": tc["arguments"].get("query"),
+                    "retrieval.index": result.get("index"),
+                    "retrieval.fragments": [
+                        {"id": f["id"], "score": f["score"]}
+                        for f in result.get("fragments", [])],
+                })
+        if not _is_empty_result(result):
+            break
+    return result

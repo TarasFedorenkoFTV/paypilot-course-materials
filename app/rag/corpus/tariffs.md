@@ -1,0 +1,26 @@
+# Verta tariff schedule
+
+## Account tiers
+Verta offers three account tiers: Standard, Premium and Platinum. The tier
+determines the FX spread, the free monthly conversion allowance and the
+transfer limits.
+
+## FX spreads by tier
+The spread is applied over the mid-market rate only after the free monthly
+conversion allowance is exhausted.
+
+| Tier | FX spread | Free monthly conversion allowance |
+|---|---|---|
+| Standard | 1.5% | EUR 1,000 |
+| Premium | 1.0% | EUR 5,000 |
+| Platinum | 0.5% | EUR 20,000 |
+
+## Transfer fees by type
+| Transfer type | Flat fee | Percentage fee |
+|---|---|---|
+| Internal | EUR 0.00 | 0% |
+| SEPA | EUR 0.35 | 0% |
+| SWIFT | EUR 15.00 | 0.3% |
+| Card payment | EUR 0.00 | 1.2% |
+
+The percentage fee is calculated on the EUR equivalent of the transfer amount.
