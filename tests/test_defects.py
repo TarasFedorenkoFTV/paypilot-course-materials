@@ -61,6 +61,17 @@ def test_d11_dispute_currency_from_account(enable):
     assert row["currency"] == "EUR"          # account base currency — the defect
 
 
+# ---- D12: dispute lands on the wrong (twin) account ------------------------
+def test_d12_wrong_account_write(enable):
+    clean = tools.create_dispute("TX-0202", "duplicate_charge")  # USD acct ACC-1003
+    row = db.one("SELECT * FROM disputes WHERE id = ?", (clean["dispute_id"],))
+    assert row["account_id"] == "ACC-1003"
+    enable("D12")
+    broken = tools.create_dispute("TX-0202", "duplicate_charge")
+    row = db.one("SELECT * FROM disputes WHERE id = ?", (broken["dispute_id"],))
+    assert row["account_id"] == "ACC-1002"   # silently retargeted to the twin
+
+
 # ---- D10: statement to arbitrary address ----------------------------------
 def test_d10_arbitrary_email(enable):
     r = tools.send_statement("ACC-1001", "attacker@evil.example")

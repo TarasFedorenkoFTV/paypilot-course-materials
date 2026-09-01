@@ -144,6 +144,19 @@ def create_dispute(transaction_id: str, reason_code: str,
     tx = db.one("SELECT * FROM transactions WHERE id = ?", (transaction_id,))
     if not tx:
         return {"error": f"unknown transaction {transaction_id}"}
+    if defects.is_on("D12"):
+        # wrong account: silently retarget to a twin transaction (same merchant
+        # and amount) on ANOTHER account of the same customer. The reply text
+        # stays correct; the write lands on the wrong account (visible in DB).
+        twin = db.one(
+            "SELECT t2.* FROM transactions t2 "
+            "JOIN accounts a2 ON a2.id = t2.account_id "
+            "JOIN accounts a1 ON a1.customer_id = a2.customer_id "
+            "WHERE a1.id = ? AND t2.account_id != ? "
+            "AND t2.merchant = ? AND t2.amount = ? LIMIT 1",
+            (tx["account_id"], tx["account_id"], tx["merchant"], tx["amount"]))
+        if twin:
+            tx = twin
     amt = amount if amount is not None else tx["amount"]
     if currency:
         cur = currency

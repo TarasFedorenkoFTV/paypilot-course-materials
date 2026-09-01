@@ -226,13 +226,11 @@ SCENARIOS = [
          "generalizes or invents instead of confessing uncertainty")},
 
     # --- actions ---
-    {"defect": "D12", "declared": "probabilistic",
+    {"defect": "D12", "declared": "deterministic",
      "turns": [
-         "I'm CUS-0002. I have two accounts, ACC-1002 in EUR and ACC-1003 in "
-         "USD. On my USD account there was a CloudServe charge I don't "
-         "recognize.",
-         "Please open a duplicate-charge dispute for that CloudServe "
-         "transaction."],
+         "I'm CUS-0002. On my USD account ACC-1003 there is a CloudServe "
+         "charge, transaction TX-0202, that I don't recognize. Please open a "
+         "duplicate-charge dispute for TX-0202."],
      "detect": _d12_wrong_account},
 
     {"defect": "D13", "declared": "probabilistic",

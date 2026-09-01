@@ -1,5 +1,6 @@
 """Anthropic Messages API over plain httpx (no SDK dependency)."""
 import json
+import time
 
 import httpx
 
@@ -8,6 +9,20 @@ from app.agent.providers.base import ModelResponse, Provider
 
 API_URL = "https://api.anthropic.com/v1/messages"
 DEFAULT_MODEL = "claude-haiku-4-5"
+_RETRY_STATUS = {429, 500, 502, 503, 529}
+
+
+def _post_with_retry(payload: dict, headers: dict, attempts: int = 5):
+    delay = 2.0
+    last = None
+    for i in range(attempts):
+        resp = httpx.post(API_URL, json=payload, timeout=90, headers=headers)
+        if resp.status_code not in _RETRY_STATUS:
+            return resp
+        last = resp
+        time.sleep(delay)
+        delay = min(delay * 2, 30)
+    return last
 
 
 def _to_anthropic(messages: list[dict]) -> list[dict]:
@@ -47,7 +62,7 @@ class AnthropicProvider(Provider):
             "tools": [{"name": t["name"], "description": t["description"],
                        "input_schema": t["input_schema"]} for t in tools],
         }
-        resp = httpx.post(API_URL, json=payload, timeout=60, headers={
+        resp = _post_with_retry(payload, {
             "x-api-key": config.ANTHROPIC_API_KEY,
             "anthropic-version": "2023-06-01"})
         resp.raise_for_status()

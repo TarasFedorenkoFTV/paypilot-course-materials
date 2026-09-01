@@ -25,8 +25,8 @@ defects:
         mechanism: "send_statement accepts any email without matching the account's registered address — a data exfiltration channel."}
   D11: {title: Unnormalized currency on write, layer: code, determinism: deterministic, iteration: 1, status: implemented,
         mechanism: "create_dispute without currency records the amount in the account base currency; visible only in the DB row."}
-  D12: {title: Wrong account id in args, layer: prompt, determinism: probabilistic, iteration: 1, status: planned,
-        mechanism: "With two accounts mentioned in the dialog, the action targets the wrong one; the reply text is impeccable."}
+  D12: {title: Wrong account id in args, layer: code, determinism: deterministic, iteration: 1, status: implemented,
+        mechanism: "With two accounts holding twin transactions, create_dispute silently retargets to the twin on the other account; the reply text is impeccable, the write lands on the wrong account (visible only in the DB)."}
   D13: {title: Wrong call order, layer: prompt, determinism: probabilistic, iteration: 1, status: planned,
         mechanism: "Agent consults transaction history instead of account data before advising on a limit."}
   D14: {title: Retry loop on empty result, layer: code, determinism: deterministic, iteration: 1, status: implemented,
