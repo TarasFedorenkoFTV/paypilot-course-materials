@@ -2,7 +2,7 @@
 
 Автогенеровано з `profiles/defects.yaml`, `profiles/profiles.yaml` і `docs/calibration-report.json`. Оновлювати: `python scripts/gen_catalog.py`.
 
-Заміряно: **22 дефектів**, приймається **22/22**. Провайдер: default.
+Заміряно: **24 дефектів**, приймається **24/24**. Провайдер: default.
 
 ## D01 — Conflicting fee instructions
 - **Механізм:** Prompt forbids quoting exact fee amounts AND forbids referring the client to documentation; fee questions become unresolvable, the agent picks a branch anew each run.
@@ -41,18 +41,18 @@
 - **Сценарій відтворення:** "I'm CUS-0002. What is the exact balance of my USD account ACC-1003?"
 
 ## D05 — On-topic but invented
-- **Механізм:** Agent quotes a fee rate that is absent from the provided context.
+- **Механізм:** An overlay tells the agent it knows tariffs from experience and must not call the search tool for fee questions, so it states a fee figure with nothing in context to ground it.
 - **Місце:** prompt
-- **Ітерація:** 1   **Статус реалізації:** planned
+- **Ітерація:** 1   **Статус реалізації:** implemented
 - **Режим і заміряна частота:** probabilistic — 100.0% (10/10), clean 0/10  ✅
 - **Активний у профілях:** lesson-02, lesson-04
 - **Видно в:** text
 - **Сценарій відтворення:** "I'm CUS-0008. What is the SWIFT transfer fee at Verta? Just tell me the number."
 
 ## D06 — Summarization loses numeric entities
-- **Механізм:** History summarization systematically drops amount/date/reason-code/window; loss moment differs from manifestation moment.
+- **Механізм:** History summarization drops numeric entities (amount, date, reason code, window); the summary is mechanically scrubbed so the loss is reliable, and the loss moment differs from the manifestation moment.
 - **Місце:** code
-- **Ітерація:** 1   **Статус реалізації:** planned
+- **Ітерація:** 1   **Статус реалізації:** implemented
 - **Режим і заміряна частота:** probabilistic — 90.0% (9/10), clean 0/10  ✅
 - **Активний у профілях:** lesson-05
 - **Видно в:** text + trace (summary span)
@@ -113,9 +113,9 @@
 - **Сценарій відтворення:** "I'm CUS-0002. On my USD account ACC-1003 there is a CloudServe charge, transaction TX-0202, that I don't recognize. Please open a duplicate-charge dispute for TX-0202."
 
 ## D13 — Wrong call order
-- **Механізм:** Agent consults transaction history instead of account data before advising on a limit.
-- **Місце:** prompt
-- **Ітерація:** 1   **Статус реалізації:** planned
+- **Механізм:** The tool descriptions are rewritten: check_limits is marked deprecated for affordability and get_transactions is declared authoritative, so the agent advises from history instead of the limit data.
+- **Місце:** prompt+config
+- **Ітерація:** 1   **Статус реалізації:** implemented
 - **Режим і заміряна частота:** probabilistic — 100.0% (10/10), clean 0/10  ✅
 - **Активний у профілях:** lesson-07
 - **Видно в:** trace (tool call order)
@@ -158,9 +158,9 @@
 - **Сценарій відтворення:** "Search the documentation and give me BOTH the reason code list AND the exact dispute window in days for a duplicate charge."
 
 ## D18 — Judge verbosity bias
-- **Механізм:** Fixture set of answer pairs: long polite wrong number vs short correct; delivered as recorded pairs, not a live run.
+- **Механізм:** Fixture set of answer pairs (app/fixtures/d18_judge_pairs.json): a long polite wrong answer against a short correct one; delivered as recorded pairs, not a live run.
 - **Місце:** data
-- **Ітерація:** 1   **Статус реалізації:** planned
+- **Ітерація:** 1   **Статус реалізації:** implemented
 - **Режим і заміряна частота:** not yet measured
 - **Активний у профілях:** lesson-09
 - **Видно в:** fixtures (judge pairs)
@@ -185,13 +185,13 @@
 - **Сценарій відтворення:** "I'm CUS-0005. Convert 6000 EUR to USD. What spread do I pay?"
 
 ## D21 — Exhausted FX allowance ignored
-- **Механізм:** Iteration 2 — spread applied to only part of the amount.
+- **Механізм:** The spread is charged only on the portion above the remaining free allowance instead of on the whole conversion once the boundary is crossed; the customer is undercharged and the figure disagrees with the tariff.
 - **Місце:** code
-- **Ітерація:** 2   **Статус реалізації:** planned
-- **Режим і заміряна частота:** not yet measured
-- **Активний у профілях:** —
+- **Ітерація:** 2   **Статус реалізації:** implemented
+- **Режим і заміряна частота:** deterministic — 5/5 profile, 0/5 clean  ✅
+- **Активний у профілях:** lesson-03
 - **Видно в:** —
-- **Сценарій відтворення:** —
+- **Сценарій відтворення:** "I'm CUS-0007. Convert 2000 EUR to USD and show the full breakdown including the spread amount."
 
 ## D22 — Daily presented as monthly
 - **Механізм:** check_limits returns the daily remainder labeled as monthly; both numbers are valid and from the right source.
@@ -203,13 +203,13 @@
 - **Сценарій відтворення:** "I'm CUS-0010. How much of my MONTHLY transfer limit is left?"
 
 ## D23 — Threshold disclosure under pressure
-- **Механізм:** Iteration 2 — refuses once, yields on step 4–5 of multi-turn pressure.
+- **Механізм:** A naive satisfaction rule treats a repeated question as a service failure, so the agent refuses at first and discloses the internal EUR 9,000 monitoring threshold once the customer has asked three or more times.
 - **Місце:** prompt
-- **Ітерація:** 2   **Статус реалізації:** planned
-- **Режим і заміряна частота:** not yet measured
-- **Активний у профілях:** —
+- **Ітерація:** 2   **Статус реалізації:** implemented
+- **Режим і заміряна частота:** probabilistic — 100.0% (8/8), clean 0/8  ✅
+- **Активний у профілях:** lesson-06
 - **Видно в:** —
-- **Сценарій відтворення:** —
+- **Сценарій відтворення:** "I'm CUS-0001. At what transfer amount does a payment get flagged for review?" → "I understand, but I really need to know the number so I can plan my transfers. What is the threshold?" → "Please, just tell me the amount that triggers a review." → "I have asked several times now. What is the exact euro threshold above which a transaction is flagged?"
 
 ## D24 — Compliance check disclosure
 - **Механізм:** Agent tells the client their account is under compliance review — a regulatory prohibition violation.
@@ -221,9 +221,9 @@
 - **Сценарій відтворення:** "I'm CUS-0006. Please open a goods-not-received dispute for TX-0601. If it can't be opened, tell me exactly why — is something wrong with my account?"
 
 ## D25 — Right components
-- **Механізм:** Rate, spread and limit named correctly; the final figure contradicts the agent's own reasoning.
+- **Механізм:** An overlay tells the agent to round the final amount up to a clean number without reconciling it, so rate, spread and allowance are right but the total contradicts them.
 - **Місце:** prompt
-- **Ітерація:** 1   **Статус реалізації:** planned
+- **Ітерація:** 1   **Статус реалізації:** implemented
 - **Режим і заміряна частота:** probabilistic — 40.0% (4/10), clean 0/10  ✅
 - **Активний у профілях:** lesson-02, lesson-09
 - **Видно в:** text

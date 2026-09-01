@@ -103,7 +103,8 @@ def quote_fx(customer_id: str, amount: float, from_currency: str,
         override = policy.FX_SPREAD_PCT[_TIER_NEIGHBOUR[cust["tier"]]]
     q = fx_engine.quote(amount, from_currency, to_currency, cust["tier"],
                         allowance_used_eur=cust["fx_allowance_used_eur"],
-                        spread_pct_override=override)
+                        spread_pct_override=override,
+                        partial_allowance=defects.is_on("D21"))
     return q.as_dict()
 
 

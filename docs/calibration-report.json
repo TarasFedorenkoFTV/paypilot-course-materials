@@ -1,9 +1,9 @@
 {
   "provider": "anthropic",
   "model": "default",
-  "nprob": 10,
+  "nprob": 8,
   "ndet": 5,
-  "elapsed_s": 199.4,
+  "elapsed_s": 174.8,
   "results": [
     {
       "defect": "D01",
@@ -176,10 +176,30 @@
       "accept": true
     },
     {
+      "defect": "D21",
+      "declared": "deterministic",
+      "runs": 5,
+      "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
       "defect": "D22",
       "declared": "deterministic",
       "runs": 5,
       "fired_profile": 5,
+      "fired_clean": 0,
+      "frequency_pct": 100.0,
+      "isolation_ok": true,
+      "accept": true
+    },
+    {
+      "defect": "D23",
+      "declared": "probabilistic",
+      "runs": 8,
+      "fired_profile": 8,
       "fired_clean": 0,
       "frequency_pct": 100.0,
       "isolation_ok": true,

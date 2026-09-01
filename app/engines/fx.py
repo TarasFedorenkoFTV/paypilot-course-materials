@@ -32,7 +32,8 @@ def mid_rate(from_currency: str, to_currency: str) -> float:
 
 def quote(amount: float, from_currency: str, to_currency: str,
           tier: str, allowance_used_eur: float = 0.0,
-          spread_pct_override: float | None = None) -> FxQuote:
+          spread_pct_override: float | None = None,
+          partial_allowance: bool = False) -> FxQuote:
     """Reference calculation. `spread_pct_override` exists so the defective
     tool (D20) can misuse the engine while the engine itself stays correct.
 
@@ -50,7 +51,16 @@ def quote(amount: float, from_currency: str, to_currency: str,
         spread_pct_override if spread_pct_override is not None
         else policy.FX_SPREAD_PCT[tier])
     gross = amount * rate
-    spread_amount = gross * spread_pct / 100.0
+    if partial_allowance and not within:
+        # D21: the spread is charged only on the portion above the remaining
+        # allowance instead of on the whole conversion. Policy says the whole
+        # conversion is charged once the boundary is crossed.
+        remaining_eur = max(0.0, allowance_total - allowance_used_eur)
+        charged_eur = max(0.0, amount_eur - remaining_eur)
+        charged_share = charged_eur / amount_eur if amount_eur else 0.0
+        spread_amount = gross * charged_share * spread_pct / 100.0
+    else:
+        spread_amount = gross * spread_pct / 100.0
     return FxQuote(
         from_currency=from_currency, to_currency=to_currency, amount=amount,
         mid_rate=rate, tier=tier, spread_pct=spread_pct,

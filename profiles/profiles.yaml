@@ -8,14 +8,14 @@ profiles:
   lesson-01: [D01, D02, D03]                 # confirmed (L01)
   # "На ньому ввімкнено шість дефектів: D04, D05, D16, D19, D20, D25."
   lesson-02: [D04, D05, D16, D19, D20, D25]  # confirmed (L02)
-  # "Активні дефекти: D19, D20, D21, D22, D26."  (D21 = iteration 2, excluded)
-  lesson-03: [D19, D20, D22, D26]            # confirmed (L03), minus D21
+  # "Активні дефекти: D19, D20, D21, D22, D26."
+  lesson-03: [D19, D20, D21, D22, D26]       # confirmed (L03), D21 now implemented
   # "У lesson-04 ньому ввімкнені D16, D17 і, як контрольна точка, D05."
   lesson-04: [D16, D17, D05]                 # confirmed (L04)
   # "Профіль стенду сьогодні — lesson-05. У ньому ввімкнені D06 і D07."
   lesson-05: [D06, D07]                      # confirmed (L05)
-  # security lesson; D23 (multi-turn pressure) = iteration 2, excluded
-  lesson-06: [D08, D09, D10, D24]            # derived (L06)
+  # security lesson; D23 (multi-turn pressure) now implemented
+  lesson-06: [D08, D09, D10, D23, D24]       # derived (L06)
   # "Профіль стенду сьогодні — lesson-07: D11, D12, D13."
   lesson-07: [D11, D12, D13]                 # confirmed (L07)
   # cost/observability; L08 states D06 is explicitly NOT enabled here
