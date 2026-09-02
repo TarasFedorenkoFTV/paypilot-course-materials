@@ -12,7 +12,14 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    # ТЗ 10.1 asks for three platforms. Claiming it and testing only Linux is
+    # the same defect class the course teaches: an assertion that cannot fail
+    # on the thing it names.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     env:
       PROFILE: clean
       LLM_PROVIDER: mock          # no key needed: the stand is testable offline
