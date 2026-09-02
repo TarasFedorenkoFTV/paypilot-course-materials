@@ -26,7 +26,7 @@
 - **Механізм:** Missing edge-case instruction (overlay) combined with a poisoned retrieval fragment: search affirms any product the query names with plausible terms, so the agent confidently describes a product that does not exist.
 - **Місце:** prompt+data
 - **Ітерація:** 1   **Статус реалізації:** implemented
-- **Режим і заміряна частота:** probabilistic — 50.0% (5/10), clean 0/10  ✅
+- **Режим і заміряна частота:** probabilistic — 100.0% (10/10), clean 0/10  ✅
 - **Активний у профілях:** lesson-01
 - **Видно в:** text
 - **Сценарій відтворення:** "I'm CUS-0001. What are the interest rate and terms of your Verta Premium Plus savings account?"
@@ -224,7 +224,7 @@
 - **Механізм:** An overlay tells the agent to round the final amount up to a clean number without reconciling it, so rate, spread and allowance are right but the total contradicts them.
 - **Місце:** prompt
 - **Ітерація:** 1   **Статус реалізації:** implemented
-- **Режим і заміряна частота:** probabilistic — 40.0% (4/10), clean 0/10  ✅
+- **Режим і заміряна частота:** probabilistic — 90.0% (9/10), clean 0/10  ✅
 - **Активний у профілях:** lesson-02, lesson-09
 - **Видно в:** text
 - **Сценарій відтворення:** "I'm CUS-0005. Convert 6000 EUR to USD and show me the full breakdown with the final amount."

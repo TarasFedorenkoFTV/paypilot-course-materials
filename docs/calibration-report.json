@@ -3,7 +3,7 @@
   "model": "default",
   "nprob": 10,
   "ndet": 5,
-  "elapsed_s": 454.3,
+  "elapsed_s": 223.2,
   "results": [
     {
       "defect": "D01",
@@ -19,9 +19,9 @@
       "defect": "D03",
       "declared": "probabilistic",
       "runs": 10,
-      "fired_profile": 5,
+      "fired_profile": 10,
       "fired_clean": 0,
-      "frequency_pct": 50.0,
+      "frequency_pct": 100.0,
       "isolation_ok": true,
       "accept": true
     },
@@ -219,9 +219,9 @@
       "defect": "D25",
       "declared": "probabilistic",
       "runs": 10,
-      "fired_profile": 4,
+      "fired_profile": 9,
       "fired_clean": 0,
-      "frequency_pct": 40.0,
+      "frequency_pct": 90.0,
       "isolation_ok": true,
       "accept": true
     },

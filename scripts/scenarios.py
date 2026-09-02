@@ -302,6 +302,7 @@ SCENARIOS = [
      "detect": _d06_amount_lost},
 
     {"defect": "D07", "declared": "probabilistic",
+     "activate": ["D06", "D07"],   # lesson-05 runs both; measure that pairing
      "env": {"SUMMARIZE_AFTER_STEPS": 2},
      "turns": [
          "I'm CUS-0004. Please open a dispute for transaction TX-0401 with "

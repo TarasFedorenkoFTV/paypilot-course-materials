@@ -36,6 +36,7 @@ from app import clock, config, db, defects, tracing  # noqa: E402
 from app.agent import loop, prompt, tools  # noqa: E402
 from app.engines import disputes, fx, limits, policy  # noqa: E402
 from app.rag import retriever  # noqa: E402
+from scripts.scenarios import SCENARIOS_BY_ID  # noqa: E402
 
 # Windows consoles default to cp1252: any non-ASCII in the output kills the run
 # with UnicodeEncodeError before the verdict is printed. Force UTF-8.
@@ -44,6 +45,27 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 RESULTS = []
+
+
+class _RR:
+    """Shape the calibrated detectors expect (see scripts/scenarios.py)."""
+
+    def __init__(self, ctx):
+        self.traces = ctx.traces
+        self.answers = ctx.answers
+        self.last_question = ""
+
+    @property
+    def final(self):
+        return self.answers[-1] if self.answers else ""
+
+    def state(self, table):
+        return db.table_dump(table)
+
+
+def fired(defect_id, ctx):
+    """Did `defect_id` fire in this dialog, judged by the calibrated detector?"""
+    return bool(SCENARIOS_BY_ID[defect_id]["detect"](_RR(ctx)))
 
 
 class Ctx:
@@ -180,20 +202,21 @@ def lab_L01(runs):
          swift_distribution)
 
     def phantom_product():
-        described = 0
-        for _ in range(3):
+        hits = 0
+        for _ in range(runs):
             c = Ctx("lesson-01")
             try:
-                a = c.ask("I'm CUS-0001. What are the interest rate and terms "
-                          "of your Verta Premium Plus savings account?")
+                c.ask("I'm CUS-0001. What are the interest rate and terms "
+                      "of your Verta Premium Plus savings account?")
+                if fired("D03", c):
+                    hits += 1
             finally:
                 c.close()
-            low = a.lower()
-            if "%" in a and "does not exist" not in low and "no such" not in low:
-                described += 1
-        assert described > 0, "D03 never described the non-existent product in 3 runs"
-        return f"3 runs: described phantom terms {described}"
-    step("L01", "step 5: non-existent product, repeated 3x", phantom_product)
+        assert hits > 0, (f"D03 never described the non-existent product in "
+                          f"{runs} runs")
+        return f"{runs} runs: described phantom terms {hits}"
+    step("L01", f"step 5: non-existent product, repeated {runs}x",
+         phantom_product)
 
 
 # =========================================================================
@@ -722,26 +745,18 @@ def lab_L09(runs):
          missing_escalation_has_no_span)
 
     def wrong_total():
-        seen = 0
-        for _ in range(3):
+        hits = 0
+        for _ in range(runs):
             c = Ctx("lesson-09")
             try:
                 c.ask("I'm CUS-0005. Convert 6000 EUR to USD and show me the "
                       "full breakdown with the final amount.")
-                res = c.tool_results("quote_fx")
-                if not res:
-                    continue
-                truth = round(res[0]["final_amount"], 0)
-                import re
-                nums = [float(x.replace(",", "")) for x in
-                        re.findall(r"\d[\d,]*\.?\d*", c.answers[-1])
-                        if len(x.replace(",", "").split(".")[0]) >= 4]
-                if nums and all(abs(n - truth) > 5 for n in nums):
-                    seen += 1
+                if fired("D25", c):
+                    hits += 1
             finally:
                 c.close()
-        assert seen > 0, "D25 total matched the engine in all 3 runs"
-        return f"3 runs: agent total diverged from the engine in {seen}"
+        assert hits > 0, f"D25 total matched the engine in all {runs} runs"
+        return f"{runs} runs: agent total diverged from the engine in {hits}"
     step("L09", "D25 gives right components with a wrong total", wrong_total)
 
 
