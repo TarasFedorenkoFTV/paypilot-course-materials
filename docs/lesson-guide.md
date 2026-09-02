@@ -67,12 +67,33 @@ Examples`). Порожній блок прикладів, неоднозначн
 У трейсі: `retrieval.index` (`kb_clean` / `kb_broken`) і довжина
 `retrieval.fragments`. Корпус — 98 фрагментів чистих, 129 зіпсованих.
 
+**Компроміс за `k` міряється без рестарту** — і саме через агента, а не через
+прямий виклик ретривера:
+
+```bash
+curl -X PUT localhost:8000/api/_test/retrieval      -H 'content-type: application/json' -d '{"top_k": 1}'
+```
+
+Той самий запит при `top_k` 1 і 5 дає різну кількість `retrieval.fragments` у
+трейсі — це і є вимірювання. Тим самим ендпоінтом перемикається індекс
+(`{"index": "kb_broken"}`), а `{"index": ""}` повертає вибір дефектам профілю.
+Поточні значення: `GET /api/_test/retrieval`.
+
 ---
 
 ## L05 — пам'ять і діалог · `PROFILE=lesson-05`
 **Дефекти:** D06, D07. Потрібен багатокроковий діалог.
 
-Знизьте поріг згортки: `SUMMARIZE_AFTER_STEPS=2`.
+**Спершу знизьте поріг згортки — без цього заняття не відбудеться.**
+За замовчуванням згортка вмикається після 8 кроків, а діалог заняття має 4,
+тому агент відповість **правильно** й дефект не проявиться. Без рестарту:
+
+```bash
+curl -X PUT localhost:8000/api/_test/summarize_after      -H 'content-type: application/json' -d '{"steps": 2}'
+```
+
+Перевірити, що спрацювало: у трейсі кроку 3 має зʼявитися спан
+`agent.summarize`. Якщо його немає — поріг не знижено, і все нижче не працює.
 
 1. `I'm CUS-0004. Please open a dispute for transaction TX-0401 with reason code duplicate_charge, amount 240.00 EUR.`
 2. `Thanks. How does the review process work in general?`

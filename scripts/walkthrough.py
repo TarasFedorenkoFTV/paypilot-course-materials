@@ -366,13 +366,51 @@ def lab_L04(runs):
          broken_vs_clean_pair)
 
     def n_results_tradeoff():
-        counts = {}
-        for k in (1, 3, 5):
-            r = retriever.search("dispute window duplicate charge", top_k=k)
-            counts[k] = len(r["fragments"])
-        assert counts[1] <= 1 < counts[3] <= 3, counts
-        return f"n_results is tunable: {counts}"
-    step("L04", "step 5: n_results trade-off is measurable", n_results_tradeoff)
+        """Measure k the way a student has to: through the agent.
+
+        This step used to call retriever.search(top_k=k) in-process. That
+        proves the retriever takes a parameter; it does not prove the agent's
+        own retrieval changes, which is the thing L04 asks students to trade
+        off. The acceptance review flagged it, so the step now moves the same
+        knob the test API moves (config.RAG_TOP_K, read by active_top_k() on
+        every call) and counts fragments in the agent's own tool result.
+        """
+        q = ("What is the dispute window for a duplicate charge? "
+             "Check the documentation.")
+        seen = {}
+        for k in (1, 5):
+            saved = config.RAG_TOP_K
+            config.RAG_TOP_K = k
+            c = Ctx("clean")
+            try:
+                c.ask(q)
+                res = c.tool_results("search_knowledge_base")
+                assert res, f"agent did not search at k={k}"
+                assert res[0]["top_k"] == k,                     f"agent retrieved at top_k={res[0]['top_k']}, expected {k}"
+                seen[k] = len(res[0]["fragments"])
+            finally:
+                c.close()
+                config.RAG_TOP_K = saved
+        assert seen[1] < seen[5],             f"k made no difference to what the agent saw: {seen}"
+        return (f"the agent's own retrieval follows k: {seen[1]} fragment(s) "
+                f"at k=1 vs {seen[5]} at k=5")
+    step("L04", "step 5: n_results trade-off is measurable through the agent",
+         n_results_tradeoff)
+
+    def retrieval_knobs_have_a_surface():
+        """A knob only the source code can reach is not a lab exercise."""
+        from fastapi.testclient import TestClient
+        from app.main import app as _app
+        cl = TestClient(_app)
+        before = cl.get("/api/_test/retrieval").json()
+        got = cl.put("/api/_test/retrieval",
+                     json={"top_k": 2, "index": "kb_broken"}).json()
+        assert got["top_k"] == 2 and got["index"] == "kb_broken", got
+        cl.put("/api/_test/retrieval",
+               json={"top_k": before["rag_top_k"], "index": before["index_env"]})
+        return "top_k and index are settable from the test API without a restart"
+    step("L04", "retrieval knobs are reachable from the stand surface",
+         retrieval_knobs_have_a_surface)
 
 
 # =========================================================================
@@ -799,9 +837,23 @@ def lab_L12(runs):
             c.ask("I'm CUS-0001. What is my balance?")
             root = c.traces[0]["attributes"]
             assert root.get("prompt.version") == "base.v1", root.get("prompt.version")
-            assert "run.profile" in root and "run.active_defects" in root
+            # Assert the VALUE, not the presence of the key. This step used to
+            # say `"run.profile" in root` and stayed green for weeks while the
+            # field reported the import-time profile instead of the live one —
+            # exactly the level-3-pretending-to-be-level-1 assertion L03 warns
+            # students about, sitting in the stand's own acceptance run.
+            assert root.get("run.profile") == "clean", root.get("run.profile")
+            assert root.get("run.active_defects") == [], root.get("run.active_defects")
         finally:
             c.close()
+        p7 = Ctx("lesson-07")
+        try:
+            p7.ask("I'm CUS-0001. What is my balance?")
+            root = p7.traces[0]["attributes"]
+            assert root.get("run.profile") == "lesson-07",                 f"trace stamped {root.get('run.profile')!r} after switching to "                 f"lesson-07 — a run record versioned by this field would be wrong"
+            assert set(root["run.active_defects"]) == {"D11", "D12", "D13"},                 root["run.active_defects"]
+        finally:
+            p7.close()
         d = Ctx("clean", extra="D19,D26")
         try:
             d.ask("I'm CUS-0001. What is my balance?")
@@ -810,7 +862,8 @@ def lab_L12(runs):
                 root["run.active_defects"]
         finally:
             d.close()
-        return "prompt.version, run.profile and run.active_defects come from the run"
+        return ("prompt.version, run.profile and run.active_defects carry the "
+                "run's own values, verified across a profile switch")
     step("L12", "version fields for the run record are obtainable",
          version_fields_available)
 
@@ -940,11 +993,22 @@ def main():
         if status != "PASS":
             print(f"  {status}  {lesson}: {label} — {note}")
 
+    # A partial run must not masquerade as the full pass. `--only L04` used to
+    # overwrite the 39-step report with four rows headlined "Пройдено 4 з 4" —
+    # the acceptance evidence for ТЗ 10.3 destroyed by a debugging command.
+    full_run = set(selected) == set(LABS) and config.LLM_PROVIDER != "mock"
+    partial_note = ["", "> WARNING: **Частковий прогін.** Запущено лише "
+                    + ", ".join(selected) + f" з {len(LABS)} занять"
+                    + (" на mock-провайдері" if config.LLM_PROVIDER == "mock" else "")
+                    + ". Це не приймальний прогін ТЗ 10.3 — повний звіт лежить у "
+                      "`walkthrough-report.md` і цим файлом не заміщується."]
+
     lines = ["# Наскрізна перевірка лабораторних (ТЗ §10.3)", "",
              f"Провайдер: {config.LLM_PROVIDER} · модель "
              f"{config.LLM_MODEL or 'claude-haiku-4-5'} · "
              f"тривалість {elapsed} с", "",
              f"**Пройдено {ok} з {len(RESULTS)} кроків.**", "",
+             *([] if full_run else partial_note), "",
              "Перевіряються кроки лабораторних, що торкаються стенду. Кроки, де "
              "студент користується власними артефактами (`make eval`, "
              "`loader.py`, `evals/sets/*.jsonl`), поза обсягом стенду й тут не "
@@ -954,9 +1018,11 @@ def main():
     for lesson, label, status, note, secs in RESULTS:
         icon = {"PASS": "✅", "FAIL": "❌", "ERROR": "⚠️"}[status]
         lines.append(f"| {lesson} | {label} | {icon} | {note} | {secs} |")
-    (ROOT / "docs" / "walkthrough-report.md").write_text(
-        "\n".join(lines) + "\n", encoding="utf-8")
-    print(f"report -> docs/walkthrough-report.md")
+    name = "walkthrough-report.md" if full_run else "walkthrough-report.partial.md"
+    (ROOT / "docs" / name).write_text(chr(10).join(lines) + chr(10), encoding="utf-8")
+    print(f"report -> docs/{name}")
+    if not full_run:
+        print("partial run: the full acceptance report was left untouched.")
     sys.exit(0 if ok == len(RESULTS) else 1)
 
 
