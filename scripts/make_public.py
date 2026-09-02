@@ -48,7 +48,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 # --- directories copied wholesale, minus the deny rules below ---------------
-CODE_DIRS = ["app", "prompts", "specs", "tests"]
+CODE_DIRS = ["app", "prompts", "specs", "tests", ".github"]
 
 # --- everything else is named explicitly ------------------------------------
 ROOT_FILES = ["Dockerfile", "docker-compose.yml", "Makefile", "LICENSE",
@@ -89,6 +89,9 @@ MUST_BE_ABSENT = [
     "scripts/gen_catalog.py", "scripts/make_public.py",
     "tests/test_defects.py", "tests/test_docs_match_policy.py",
     "tests/test_acceptance_findings.py", "solutions", "Grids",
+    # _gen_corpus builds kb_broken, i.e. it is the mechanism of D16 in prose;
+    # _judge is part of the calibration harness
+    "scripts/_gen_corpus.py", "scripts/_gen_corpus2.py", "scripts/_judge.py",
 ]
 
 # Phrases that must never appear anywhere in the public tree: each one hands a
@@ -174,6 +177,9 @@ def build(dest: Path) -> None:
         raise SystemExit(f"missing from the private repo: {missing}")
     for name in ROOT_FILES:
         shutil.copy2(ROOT / name, dest / name)
+
+    if not (dest / ".github" / "workflows" / "stand-ci.yml").exists():
+        raise SystemExit("CI workflow did not make it into the student tree")
 
     (dest / "docs").mkdir(exist_ok=True)
     for name in PUBLIC_DOCS:
