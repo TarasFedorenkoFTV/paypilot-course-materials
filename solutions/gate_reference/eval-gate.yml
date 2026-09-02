@@ -1,0 +1,133 @@
+# Reference CI quality gate (ДЗ13).
+#
+# Lives in the STUDENT's repository as .github/workflows/eval-gate.yml.
+# Two layers, split by the `gate` field in the case files:
+#
+#   daily    runs on every PR, blocks the merge. Deterministic, single-run
+#            cases only: no runs: 5, no assertion: judge. Cheap and stable
+#            enough that a red build means a defect, not a coin flip.
+#   release  runs on demand or on the release branch, inside the perimeter.
+#            Carries the judge and the repeated cases.
+#
+# Integration is the EXIT CODE. There is no log parsing anywhere in this file
+# and no continue-on-error on the eval step: if the suite fails, the job fails.
+
+name: eval-gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      layer:
+        description: which layer to run
+        default: release
+        type: choice
+        options: [daily, release]
+  push:
+    branches: [release]
+
+concurrency:
+  group: eval-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLOCK_OVERRIDE: "2026-09-15T10:00:00Z"
+  SET: l03_reference
+
+jobs:
+  # ---------------------------------------------------------------------
+  # blocking layer: this is the required check on main
+  # ---------------------------------------------------------------------
+  daily:
+    if: github.event_name == 'pull_request' || inputs.layer == 'daily'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Start the stand
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # DEFECTS is empty on a normal PR. Set it on a branch to prove the
+          # gate goes red: DEFECTS=D19 flips one case in the set.
+          DEFECTS: ${{ vars.DEFECTS }}
+        run: |
+          docker compose up -d --build
+          for i in $(seq 1 40); do
+            curl -fsS http://localhost:8000/health && break || sleep 3
+          done
+
+      - name: Environment diagnostics
+        run: python scripts/doctor.py
+
+      # No continue-on-error, no `|| true`, no grepping the log. The suite
+      # exits non-zero and the job fails. That is the whole integration.
+      - name: Eval gate (daily layer)
+        working-directory: solutions/evals
+        env:
+          SERVICE_URL: http://localhost:8000
+        run: SET=${{ env.SET }} GATE=daily python runner.py
+
+      # Runs even on failure: a red build without its report cannot be triaged
+      # on L14.
+      - name: Upload the run record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report-daily-${{ github.run_id }}
+          path: solutions/evals/reports/*.json
+          retention-days: 30
+
+  # ---------------------------------------------------------------------
+  # release layer: judge and repeated cases, inside the perimeter
+  # ---------------------------------------------------------------------
+  release:
+    if: github.event_name == 'push' || inputs.layer == 'release'
+    # self-hosted keeps customer answers and the judge inside the perimeter.
+    # Fall back to ubuntu-latest only with a local judge endpoint reachable.
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Start the stand
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          docker compose up -d --build
+          for i in $(seq 1 40); do
+            curl -fsS http://localhost:8000/health && break || sleep 3
+          done
+
+      # The judge is LOCAL here. No cloud judge secret is referenced in this
+      # job at all - that is criterion 6, and it is checked by reading the
+      # judge_model field in the uploaded report.
+      - name: Eval gate (release layer)
+        working-directory: solutions/evals
+        env:
+          SERVICE_URL: http://localhost:8000
+          JUDGE_BACKEND: ollama
+          JUDGE_MODEL: qwen2.5:7b
+          OLLAMA_URL: http://localhost:11434
+        run: SET=${{ env.SET }} GATE=release python runner.py
+
+      - name: Upload the run record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report-release-${{ github.run_id }}
+          path: solutions/evals/reports/*.json
+          retention-days: 90
