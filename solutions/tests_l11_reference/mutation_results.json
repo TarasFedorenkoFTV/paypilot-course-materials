@@ -1,0 +1,133 @@
+{
+  "fixed_on": "2026-09-02",
+  "mutants": 12,
+  "elapsed": 13.0,
+  "scores": {
+    "manual": 8,
+    "generated": 1
+  },
+  "by_class": {
+    "boundary": {
+      "n": 3,
+      "manual": 2,
+      "generated": 0
+    },
+    "arithmetic": {
+      "n": 4,
+      "manual": 2,
+      "generated": 1
+    },
+    "tier": {
+      "n": 3,
+      "manual": 2,
+      "generated": 0
+    },
+    "state": {
+      "n": 2,
+      "manual": 2,
+      "generated": 0
+    }
+  },
+  "only_manual": [
+    "M01",
+    "M02",
+    "M04",
+    "M08",
+    "M10",
+    "M11",
+    "M12"
+  ],
+  "only_generated": [],
+  "survived_both": [
+    "M03",
+    "M06",
+    "M07",
+    "M09"
+  ],
+  "rows": [
+    {
+      "id": "M01",
+      "class": "boundary",
+      "description": "allowance boundary becomes exclusive: a conversion that exactly fills the allowance now gets charged",
+      "killed_by_manual": true,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M02",
+      "class": "boundary",
+      "description": "allowance ignores what was already used this month",
+      "killed_by_manual": true,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M03",
+      "class": "boundary",
+      "description": "a negative remaining allowance is not clamped, so an over-spent customer gets a discount",
+      "killed_by_manual": false,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M04",
+      "class": "arithmetic",
+      "description": "the spread is added instead of subtracted: the customer receives more than the mid rate gives",
+      "killed_by_manual": true,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M05",
+      "class": "arithmetic",
+      "description": "the spread percent is applied as a fraction, so 1.5% becomes 150%",
+      "killed_by_manual": true,
+      "killed_by_generated": true
+    },
+    {
+      "id": "M06",
+      "class": "arithmetic",
+      "description": "the cross rate is inverted",
+      "killed_by_manual": false,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M07",
+      "class": "arithmetic",
+      "description": "the flat transfer fee is dropped and only the percentage is charged",
+      "killed_by_manual": false,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M08",
+      "class": "tier",
+      "description": "every customer gets the tier-1 spread",
+      "killed_by_manual": true,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M09",
+      "class": "tier",
+      "description": "the allowance is read from a fixed tier instead of the customer's",
+      "killed_by_manual": false,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M10",
+      "class": "tier",
+      "description": "an unknown tier is accepted silently instead of raising",
+      "killed_by_manual": true,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M11",
+      "class": "state",
+      "description": "the quote claims the allowance applied even when a spread was charged",
+      "killed_by_manual": true,
+      "killed_by_generated": false
+    },
+    {
+      "id": "M12",
+      "class": "state",
+      "description": "the reported spread percent is always zero while the money is still deducted",
+      "killed_by_manual": true,
+      "killed_by_generated": false
+    }
+  ]
+}

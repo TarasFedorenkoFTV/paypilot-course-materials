@@ -27,6 +27,12 @@ class FxQuote:
 
 
 def mid_rate(from_currency: str, to_currency: str) -> float:
+    # Every other bad input in this module raises ValueError; an unknown
+    # currency used to escape as a KeyError from the dict lookup. Found by a
+    # generated test in the L11 reference set.
+    for code in (from_currency, to_currency):
+        if code not in policy.RATES_TO_EUR:
+            raise ValueError(f"Unknown currency: {code}")
     return policy.RATES_TO_EUR[from_currency] / policy.RATES_TO_EUR[to_currency]
 
 
