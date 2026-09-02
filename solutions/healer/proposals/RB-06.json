@@ -1,0 +1,15 @@
+{
+  "build": "RB-06",
+  "case_id": "LIM-001",
+  "hypothesis": "real_defect",
+  "action": "fix_system",
+  "proposal": {
+    "target": "needs_human",
+    "change": "The engine calculated 964666.00 EUR but the expected answer contains only [95086.0, 100000.0]. This suggests either: (1) the eval dataset has incorrect expected values, (2) the engine's calculation logic is wrong, or (3) there's a mismatch between what the prompt asks and what's being evaluated. Cannot propose a fix without understanding which component is actually incorrect.",
+    "needs_human": true,
+    "risk": "Any fix risks masking the real defect if applied to the wrong component."
+  },
+  "label": "real_defect",
+  "correct_action": "fix_system",
+  "generated_at": "2026-09-02T18:32:32.272173+00:00"
+}

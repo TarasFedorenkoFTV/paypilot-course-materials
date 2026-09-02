@@ -1,0 +1,15 @@
+{
+  "build": "RB-08",
+  "case_id": "RET-107",
+  "hypothesis": "environment",
+  "action": "rerun",
+  "proposal": {
+    "target": "environment/knowledge_base",
+    "change": "Restore or verify connectivity to the knowledge base service that is currently returning errors during tool.search_knowledge_base calls.",
+    "needs_human": true,
+    "risk": "If the knowledge base was intentionally taken offline, restoring it could expose stale or incorrect data; if it's a transient issue, the fix may be temporary."
+  },
+  "label": "environment",
+  "correct_action": "rerun",
+  "generated_at": "2026-09-02T18:32:38.440178+00:00"
+}

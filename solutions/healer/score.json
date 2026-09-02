@@ -1,0 +1,38 @@
+{
+  "cases": 10,
+  "triage_agreement": {
+    "hits": 10,
+    "pct": 100,
+    "ci": [
+      72,
+      100
+    ]
+  },
+  "action_agreement": {
+    "hits": 10,
+    "pct": 100,
+    "ci": [
+      72,
+      100
+    ]
+  },
+  "false_heal_rate": {
+    "hits": 0,
+    "of": 1,
+    "pct": 0,
+    "ci": [
+      0,
+      79
+    ]
+  },
+  "matrix": {
+    "auto": {
+      "fix_system": 1,
+      "other": 0
+    },
+    "escalated": {
+      "fix_system": 4,
+      "other": 5
+    }
+  }
+}

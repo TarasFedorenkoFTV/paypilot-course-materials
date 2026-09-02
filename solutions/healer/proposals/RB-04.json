@@ -1,0 +1,16 @@
+{
+  "build": "RB-04",
+  "case_id": "CMP-001",
+  "hypothesis": "stale_case",
+  "action": "fix_case",
+  "proposal": {
+    "target": "evals/sets/CMP-001",
+    "change": "Update the expected answer to accept 'EUR 15 flat and 0.3% on top' as a valid equivalent phrasing of the fee structure.",
+    "needs_human": true,
+    "risk": "Changing the dataset definition could mask actual model failures or create inconsistent evaluation standards if similar phrasings aren't handled uniformly across other cases.",
+    "blocked_by_boundary": true
+  },
+  "label": "stale_case",
+  "correct_action": "fix_case",
+  "generated_at": "2026-09-02T18:32:25.025326+00:00"
+}

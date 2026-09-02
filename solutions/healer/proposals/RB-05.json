@@ -1,0 +1,16 @@
+{
+  "build": "RB-05",
+  "case_id": "TOOL-401B",
+  "hypothesis": "stale_case",
+  "action": "fix_case",
+  "proposal": {
+    "target": "evals/sets/TOOL-401B",
+    "change": "Update expected calls to include 'get_account' since reading the account context is necessary to apply limits correctly.",
+    "needs_human": true,
+    "risk": "This modifies the dataset which defines correctness; only a human should confirm this behavior is actually correct.",
+    "blocked_by_boundary": true
+  },
+  "label": "stale_case",
+  "correct_action": "fix_case",
+  "generated_at": "2026-09-02T18:32:28.949759+00:00"
+}

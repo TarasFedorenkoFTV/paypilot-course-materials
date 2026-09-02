@@ -1,0 +1,15 @@
+{
+  "build": "RB-10",
+  "case_id": "CMP-004",
+  "hypothesis": "environment",
+  "action": "rerun",
+  "proposal": {
+    "target": "needs_human",
+    "change": "HTTP 529 errors are transient infrastructure failures, not code bugs. The test case itself is valid (expects '60' in answer). This requires either: (1) retry logic improvements in llm.call, (2) test infrastructure hardening, or (3) marking this case as flaky. Cannot determine correct fix without understanding retry policy design.",
+    "needs_human": true,
+    "risk": "Masking real infrastructure issues or breaking legitimate timeout handling"
+  },
+  "label": "environment",
+  "correct_action": "rerun",
+  "generated_at": "2026-09-02T18:32:45.775022+00:00"
+}

@@ -1,0 +1,16 @@
+{
+  "build": "RB-03",
+  "case_id": "FX-002",
+  "hypothesis": "real_defect",
+  "action": "fix_system",
+  "proposal": {
+    "target": "specs/fx-002-spread-calculation.md",
+    "change": "Clarify that tier2 spread calculation should apply the 0.9% to the base amount (3000.0) before adding tier1 premium (231.52), not after, to yield the expected 3231.52 result.",
+    "needs_human": true,
+    "risk": "Changing the spec may invalidate other passing test cases that depend on the current tier2 spread interpretation.",
+    "blocked_by_boundary": true
+  },
+  "label": "real_defect",
+  "correct_action": "fix_system",
+  "generated_at": "2026-09-02T18:32:21.962905+00:00"
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "RB-01",
+    "case_id": "DIS-006",
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "agent_hypothesis": "real_defect",
+    "agent_action": "fix_system",
+    "evidence": "engine_says",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-02",
+    "case_id": "DIS-002-N",
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "agent_hypothesis": "real_defect",
+    "agent_action": "fix_system",
+    "evidence": "engine_says",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-03",
+    "case_id": "FX-002",
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "agent_hypothesis": "real_defect",
+    "agent_action": "fix_system",
+    "evidence": "engine_says",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-04",
+    "case_id": "CMP-001",
+    "label": "stale_case",
+    "correct_action": "fix_case",
+    "agent_hypothesis": "stale_case",
+    "agent_action": "fix_case",
+    "evidence": "answer_note",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-05",
+    "case_id": "TOOL-401B",
+    "label": "stale_case",
+    "correct_action": "fix_case",
+    "agent_hypothesis": "stale_case",
+    "agent_action": "fix_case",
+    "evidence": "answer_note",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-06",
+    "case_id": "LIM-001",
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "agent_hypothesis": "real_defect",
+    "agent_action": "fix_system",
+    "evidence": "engine_says",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-07",
+    "case_id": "HUM-004",
+    "label": "flaky",
+    "correct_action": "move_layer",
+    "agent_hypothesis": "flaky",
+    "agent_action": "move_layer",
+    "evidence": "runs_note: verdicts across runs: F P F F P - inconsistent verdicts (3 FAIL, 2 PASS) with identical prompt_version, profile, and judge_model indicate non-deterministic behavior",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-08",
+    "case_id": "RET-107",
+    "label": "environment",
+    "correct_action": "rerun",
+    "agent_hypothesis": "environment",
+    "agent_action": "rerun",
+    "evidence": "tool.search_knowledge_base returned an error",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-09",
+    "case_id": "FX-003",
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "agent_hypothesis": "real_defect",
+    "agent_action": "fix_system",
+    "evidence": "engine_says",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  },
+  {
+    "id": "RB-10",
+    "case_id": "CMP-004",
+    "label": "environment",
+    "correct_action": "rerun",
+    "agent_hypothesis": "environment",
+    "agent_action": "rerun",
+    "evidence": "answer_note: 'Service temporarily unavailable.' and trace_note: 'llm.call returned HTTP 529 on every retry'",
+    "confidence": "high",
+    "agrees": true,
+    "action_agrees": true
+  }
+]

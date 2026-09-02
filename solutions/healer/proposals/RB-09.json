@@ -1,0 +1,15 @@
+{
+  "build": "RB-09",
+  "case_id": "FX-003",
+  "hypothesis": "real_defect",
+  "action": "fix_system",
+  "proposal": {
+    "target": "needs_human",
+    "change": "The engine correctly computed 6463.04 but the answer contains [6521.74, 58.70, 6500.0] which don't match. This suggests either: (1) the eval dataset expected value is wrong, (2) the prompt is extracting wrong numbers from a correct calculation, or (3) there's a mismatch between what the engine computed and what was extracted. Cannot fix without examining the dataset definition and prompt logic.",
+    "needs_human": true,
+    "risk": "Any fix risks masking a real calculation error or corrupting the eval dataset integrity."
+  },
+  "label": "real_defect",
+  "correct_action": "fix_system",
+  "generated_at": "2026-09-02T18:32:42.489589+00:00"
+}

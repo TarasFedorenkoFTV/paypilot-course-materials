@@ -1,0 +1,15 @@
+{
+  "build": "RB-01",
+  "case_id": "DIS-006",
+  "hypothesis": "real_defect",
+  "action": "fix_system",
+  "proposal": {
+    "target": "checks/dispute_eligibility.py",
+    "change": "Add logic to mark disputes ineligible when run.active_defects contains D19 (currently missing this defect code check).",
+    "needs_human": false,
+    "risk": "May incorrectly reject legitimate disputes if D19 is a false positive or should only block specific dispute types."
+  },
+  "label": "real_defect",
+  "correct_action": "fix_system",
+  "generated_at": "2026-09-02T18:32:14.707404+00:00"
+}

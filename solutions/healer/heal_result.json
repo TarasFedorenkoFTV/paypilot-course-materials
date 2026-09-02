@@ -1,0 +1,156 @@
+[
+  {
+    "build": "RB-01",
+    "case_id": "DIS-006",
+    "hypothesis": "real_defect",
+    "action": "fix_system",
+    "proposal": {
+      "target": "checks/dispute_eligibility.py",
+      "change": "Add logic to mark disputes ineligible when run.active_defects contains D19 (currently missing this defect code check).",
+      "needs_human": false,
+      "risk": "May incorrectly reject legitimate disputes if D19 is a false positive or should only block specific dispute types."
+    },
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "generated_at": "2026-09-02T18:32:14.707404+00:00"
+  },
+  {
+    "build": "RB-02",
+    "case_id": "DIS-002-N",
+    "hypothesis": "real_defect",
+    "action": "fix_system",
+    "proposal": {
+      "target": "specs/DIS-002.md",
+      "change": "Update the forbidden pattern to exclude 'you can still dispute' as a legitimate dispute-window-open indicator, or clarify that this phrase should only trigger when paired with specific temporal markers indicating an active window.",
+      "needs_human": true,
+      "risk": "Changing specs would redefine what 'correct' means for this requirement; the pattern may be legitimately forbidden per requirements, making this a real defect in the implementation rather than the spec.",
+      "blocked_by_boundary": true
+    },
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "generated_at": "2026-09-02T18:32:18.433899+00:00"
+  },
+  {
+    "build": "RB-03",
+    "case_id": "FX-002",
+    "hypothesis": "real_defect",
+    "action": "fix_system",
+    "proposal": {
+      "target": "specs/fx-002-spread-calculation.md",
+      "change": "Clarify that tier2 spread calculation should apply the 0.9% to the base amount (3000.0) before adding tier1 premium (231.52), not after, to yield the expected 3231.52 result.",
+      "needs_human": true,
+      "risk": "Changing the spec may invalidate other passing test cases that depend on the current tier2 spread interpretation.",
+      "blocked_by_boundary": true
+    },
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "generated_at": "2026-09-02T18:32:21.962905+00:00"
+  },
+  {
+    "build": "RB-04",
+    "case_id": "CMP-001",
+    "hypothesis": "stale_case",
+    "action": "fix_case",
+    "proposal": {
+      "target": "evals/sets/CMP-001",
+      "change": "Update the expected answer to accept 'EUR 15 flat and 0.3% on top' as a valid equivalent phrasing of the fee structure.",
+      "needs_human": true,
+      "risk": "Changing the dataset definition could mask actual model failures or create inconsistent evaluation standards if similar phrasings aren't handled uniformly across other cases.",
+      "blocked_by_boundary": true
+    },
+    "label": "stale_case",
+    "correct_action": "fix_case",
+    "generated_at": "2026-09-02T18:32:25.025326+00:00"
+  },
+  {
+    "build": "RB-05",
+    "case_id": "TOOL-401B",
+    "hypothesis": "stale_case",
+    "action": "fix_case",
+    "proposal": {
+      "target": "evals/sets/TOOL-401B",
+      "change": "Update expected calls to include 'get_account' since reading the account context is necessary to apply limits correctly.",
+      "needs_human": true,
+      "risk": "This modifies the dataset which defines correctness; only a human should confirm this behavior is actually correct.",
+      "blocked_by_boundary": true
+    },
+    "label": "stale_case",
+    "correct_action": "fix_case",
+    "generated_at": "2026-09-02T18:32:28.949759+00:00"
+  },
+  {
+    "build": "RB-06",
+    "case_id": "LIM-001",
+    "hypothesis": "real_defect",
+    "action": "fix_system",
+    "proposal": {
+      "target": "needs_human",
+      "change": "The engine calculated 964666.00 EUR but the expected answer contains only [95086.0, 100000.0]. This suggests either: (1) the eval dataset has incorrect expected values, (2) the engine's calculation logic is wrong, or (3) there's a mismatch between what the prompt asks and what's being evaluated. Cannot propose a fix without understanding which component is actually incorrect.",
+      "needs_human": true,
+      "risk": "Any fix risks masking the real defect if applied to the wrong component."
+    },
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "generated_at": "2026-09-02T18:32:32.272173+00:00"
+  },
+  {
+    "build": "RB-07",
+    "case_id": "HUM-004",
+    "hypothesis": "flaky",
+    "action": "rerun",
+    "proposal": {
+      "target": "judges/claude-haiku-4-5",
+      "change": "Increase temperature or add explicit instruction for consistent evaluation criteria to reduce variance in verdicts across runs.",
+      "needs_human": true,
+      "risk": "May mask underlying ambiguity in the eval set or prompt that should be fixed instead; could reduce judge sensitivity to actual differences in responses."
+    },
+    "label": "flaky",
+    "correct_action": "move_layer",
+    "generated_at": "2026-09-02T18:32:35.424113+00:00"
+  },
+  {
+    "build": "RB-08",
+    "case_id": "RET-107",
+    "hypothesis": "environment",
+    "action": "rerun",
+    "proposal": {
+      "target": "environment/knowledge_base",
+      "change": "Restore or verify connectivity to the knowledge base service that is currently returning errors during tool.search_knowledge_base calls.",
+      "needs_human": true,
+      "risk": "If the knowledge base was intentionally taken offline, restoring it could expose stale or incorrect data; if it's a transient issue, the fix may be temporary."
+    },
+    "label": "environment",
+    "correct_action": "rerun",
+    "generated_at": "2026-09-02T18:32:38.440178+00:00"
+  },
+  {
+    "build": "RB-09",
+    "case_id": "FX-003",
+    "hypothesis": "real_defect",
+    "action": "fix_system",
+    "proposal": {
+      "target": "needs_human",
+      "change": "The engine correctly computed 6463.04 but the answer contains [6521.74, 58.70, 6500.0] which don't match. This suggests either: (1) the eval dataset expected value is wrong, (2) the prompt is extracting wrong numbers from a correct calculation, or (3) there's a mismatch between what the engine computed and what was extracted. Cannot fix without examining the dataset definition and prompt logic.",
+      "needs_human": true,
+      "risk": "Any fix risks masking a real calculation error or corrupting the eval dataset integrity."
+    },
+    "label": "real_defect",
+    "correct_action": "fix_system",
+    "generated_at": "2026-09-02T18:32:42.489589+00:00"
+  },
+  {
+    "build": "RB-10",
+    "case_id": "CMP-004",
+    "hypothesis": "environment",
+    "action": "rerun",
+    "proposal": {
+      "target": "needs_human",
+      "change": "HTTP 529 errors are transient infrastructure failures, not code bugs. The test case itself is valid (expects '60' in answer). This requires either: (1) retry logic improvements in llm.call, (2) test infrastructure hardening, or (3) marking this case as flaky. Cannot determine correct fix without understanding retry policy design.",
+      "needs_human": true,
+      "risk": "Masking real infrastructure issues or breaking legitimate timeout handling"
+    },
+    "label": "environment",
+    "correct_action": "rerun",
+    "generated_at": "2026-09-02T18:32:45.775022+00:00"
+  }
+]

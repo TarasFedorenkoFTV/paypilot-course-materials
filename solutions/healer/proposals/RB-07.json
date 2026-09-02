@@ -1,0 +1,15 @@
+{
+  "build": "RB-07",
+  "case_id": "HUM-004",
+  "hypothesis": "flaky",
+  "action": "rerun",
+  "proposal": {
+    "target": "judges/claude-haiku-4-5",
+    "change": "Increase temperature or add explicit instruction for consistent evaluation criteria to reduce variance in verdicts across runs.",
+    "needs_human": true,
+    "risk": "May mask underlying ambiguity in the eval set or prompt that should be fixed instead; could reduce judge sensitivity to actual differences in responses."
+  },
+  "label": "flaky",
+  "correct_action": "move_layer",
+  "generated_at": "2026-09-02T18:32:35.424113+00:00"
+}
