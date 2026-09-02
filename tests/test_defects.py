@@ -55,6 +55,7 @@ def test_d11_dispute_currency_from_account(enable):
     clean = tools.create_dispute("TX-0801", "goods_not_received")
     row = db.one("SELECT * FROM disputes WHERE id = ?", (clean["dispute_id"],))
     assert row["currency"] == "USD"          # transaction currency
+    db.reset()                               # disputes are idempotent per (tx, code)
     enable("D11")
     broken = tools.create_dispute("TX-0801", "goods_not_received")
     row = db.one("SELECT * FROM disputes WHERE id = ?", (broken["dispute_id"],))
@@ -66,10 +67,25 @@ def test_d12_wrong_account_write(enable):
     clean = tools.create_dispute("TX-0202", "duplicate_charge")  # USD acct ACC-1003
     row = db.one("SELECT * FROM disputes WHERE id = ?", (clean["dispute_id"],))
     assert row["account_id"] == "ACC-1003"
+    db.reset()                               # disputes are idempotent per (tx, code)
     enable("D12")
     broken = tools.create_dispute("TX-0202", "duplicate_charge")
     row = db.one("SELECT * FROM disputes WHERE id = ?", (broken["dispute_id"],))
     assert row["account_id"] == "ACC-1002"   # silently retargeted to the twin
+
+
+# ---- idempotency of the irreversible write (ДЗ7 asserts count == 1) --------
+def test_create_dispute_is_idempotent_per_reason_code():
+    first = tools.create_dispute("TX-0401", "duplicate_charge")
+    repeat = tools.create_dispute("TX-0401", "duplicate_charge")
+    assert repeat["dispute_id"] == first["dispute_id"]
+    assert repeat.get("duplicate") is True
+    rows = db.rows("SELECT * FROM disputes WHERE transaction_id = ?", ("TX-0401",))
+    assert len(rows) == 1
+    # a different reason code is a different case and is allowed
+    other = tools.create_dispute("TX-0401", "fraud_card_not_present")
+    assert other["dispute_id"] != first["dispute_id"]
+    assert len(db.rows("SELECT * FROM disputes")) == 2
 
 
 # ---- D10: statement to arbitrary address ----------------------------------

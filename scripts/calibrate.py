@@ -38,6 +38,12 @@ os.environ.setdefault("CLOCK_OVERRIDE", "2026-09-15T10:00:00Z")
 
 from app import clock, config, db, defects, tracing  # noqa: E402
 from app.agent import loop  # noqa: E402
+
+# Windows consoles default to cp1252: any non-ASCII in the output kills the run
+# with UnicodeEncodeError before the verdict is printed. Force UTF-8.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from scripts.scenarios import SCENARIOS, SCENARIOS_BY_ID  # noqa: E402
 
 

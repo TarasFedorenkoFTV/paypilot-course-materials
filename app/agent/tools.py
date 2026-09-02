@@ -172,6 +172,17 @@ def create_dispute(transaction_id: str, reason_code: str,
             (tx["account_id"], tx["account_id"], tx["merchant"], tx["amount"]))
         if twin:
             tx = twin
+    existing = db.one(
+        "SELECT * FROM disputes WHERE transaction_id = ? AND reason_code = ? "
+        "AND status IN ('open','under_review')",
+        (tx["id"], reason_code))
+    if existing:
+        # Idempotent by policy: the same transaction cannot be disputed twice
+        # under the same reason code (see the dispute-process document). A
+        # repeat returns the existing case instead of writing a second row —
+        # this is what the students' count == 1 assertion checks.
+        return {"dispute_id": existing["id"], "status": existing["status"],
+                "duplicate": True}
     amt = amount if amount is not None else tx["amount"]
     if currency:
         cur = currency

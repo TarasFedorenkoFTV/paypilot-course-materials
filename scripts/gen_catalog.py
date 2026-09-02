@@ -12,6 +12,12 @@ sys.path.insert(0, str(ROOT))
 import yaml  # noqa: E402
 from scripts.scenarios import SCENARIOS_BY_ID  # noqa: E402
 
+# Windows consoles default to cp1252: any non-ASCII in the output kills the run
+# with UnicodeEncodeError before the verdict is printed. Force UTF-8.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 REGISTRY = yaml.safe_load((ROOT / "profiles" / "defects.yaml").read_text(
     encoding="utf-8"))["defects"]
 PROFILES = yaml.safe_load((ROOT / "profiles" / "profiles.yaml").read_text(

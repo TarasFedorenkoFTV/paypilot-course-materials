@@ -18,6 +18,12 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import app  # noqa: E402
 
+# Windows consoles default to cp1252: any non-ASCII in the output kills the run
+# with UnicodeEncodeError before the verdict is printed. Force UTF-8.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 client = TestClient(app)
 failures = []
 

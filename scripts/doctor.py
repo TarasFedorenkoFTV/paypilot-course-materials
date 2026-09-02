@@ -4,6 +4,12 @@ import importlib
 import os
 import sys
 
+# Windows consoles default to cp1252: any non-ASCII in the output kills the run
+# with UnicodeEncodeError before the verdict is printed. Force UTF-8.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 OK, WARN, FAIL = "OK", "WARN", "FAIL"
 results: list[tuple[str, str, str]] = []
 
