@@ -7,3 +7,4 @@ traces/
 .env
 .pytest_cache/
 lr_txt/
+solutions/evals/reports/
