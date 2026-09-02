@@ -32,6 +32,7 @@ NAME_TO_LEVEL = {
     "contains": 3, "regex": 3, "pattern": 3,
     "not_contains": 4, "absent": 4, "no_span": 4, "not_regex": 4,
     "tool_result_numeric": 2, "tool_result_flag": 1, "tool_call_count": 1,
+    "state_row": 1, "tool_sequence": 3,
     "similar": 5,
     "k_of_n": 6,
     "judge": 7,
@@ -172,6 +173,35 @@ def tool_calls_exact(trace: dict, expected: list[str]) -> Verdict:
                    "" if ok else f"expected {expected}, called {actual}")
 
 
+def tool_sequence(trace: dict, must_include: list[str] | None = None,
+                  must_exclude: list[str] | None = None,
+                  before: tuple[str, str] | None = None) -> Verdict:
+    """Level 3 on the call sequence: which tools were used, not the exact list.
+
+    ДЗ7 has students write the same measurable twice — level 1 (exact list)
+    and level 3 (pattern) — and compare. The exact list is the brittle one: an
+    extra innocent span breaks it while the requirement still holds.
+    `before` asserts an order: ("check_limits", "get_transactions")."""
+    called = _tool_sequence(trace)
+    problems = []
+    for tool in must_include or []:
+        if tool not in called:
+            problems.append(f"{tool} was not called")
+    for tool in must_exclude or []:
+        if tool in called:
+            problems.append(f"{tool} should not have been called")
+    if before:
+        first, second = before
+        if first in called and second in called:
+            if called.index(first) > called.index(second):
+                problems.append(f"{first} must come before {second}")
+        elif second in called and first not in called:
+            problems.append(f"{second} was called without {first}")
+    ok = not problems
+    return Verdict(ok, 3, "tool_sequence",
+                   f"called {called}" if ok else "; ".join(problems))
+
+
 def tool_called_with(trace: dict, tool: str, args: dict,
                      level: int = 1) -> Verdict:
     """Level 1 on an argument the customer named; level 2 when the argument is
@@ -229,6 +259,30 @@ def tool_result_flag(trace: dict, tool: str, field: str, expected) -> Verdict:
                        f"{tool}.{field} = {got}" if ok else
                        f"{tool}.{field} = {got!r}, expected {expected!r}")
     return Verdict(False, 1, "tool_result_flag", f"{tool} was never called")
+
+
+def state_row(rows: list[dict], where: dict, expect_fields: dict,
+              expected_count: int | None = None) -> Verdict:
+    """Assert on the state the write left behind.
+
+    Some defects have no trace in the reply text and none in the call
+    arguments either — only the row shows them (D11 currency, D12 account).
+    `expected_count` also expresses idempotency: count == 1 after a repeat."""
+    matched = [r for r in rows
+               if all(str(r.get(k)) == str(v) for k, v in where.items())]
+    if expected_count is not None and len(matched) != expected_count:
+        return Verdict(False, 1, "state_row",
+                       f"{len(matched)} rows matched {where or '{}'}, "
+                       f"expected {expected_count}")
+    for field, want in (expect_fields or {}).items():
+        for row in matched:
+            if str(row.get(field)) != str(want):
+                return Verdict(False, 1, "state_row",
+                               f"{field} = {row.get(field)!r}, expected {want!r}")
+    detail = f"{len(matched)} row(s) match"
+    if expect_fields:
+        detail += " with " + ", ".join(f"{k}={v}" for k, v in expect_fields.items())
+    return Verdict(True, 1, "state_row", detail)
 
 
 def tool_call_count(trace: dict, tool: str, expected: int) -> Verdict:

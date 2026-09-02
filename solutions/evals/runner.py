@@ -98,6 +98,15 @@ def evaluate(case: dict, results: list[dict]) -> A.Verdict:
     if name == "tool_result_flag":
         return A.tool_result_flag(tree, meta["tool"], meta["field"],
                                   meta["expected_flag"])
+    if name == "tool_sequence":
+        return A.tool_sequence(tree, meta.get("must_include"),
+                               meta.get("must_exclude"),
+                               tuple(meta["before"]) if meta.get("before") else None)
+    if name == "state_row":
+        rows = stand.state(meta["table"])
+        return A.state_row(rows, meta.get("where", {}),
+                           meta.get("expect_fields", {}),
+                           meta.get("expected_count"))
     if name == "tool_call_count":
         return A.tool_call_count(tree, meta["tool"], meta["expected_count"])
     if name == "no_span":
