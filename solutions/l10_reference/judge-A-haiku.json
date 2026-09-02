@@ -1,0 +1,506 @@
+{
+  "judge_model": "claude-haiku-4-5",
+  "rubric_version": "rubric.v1",
+  "runs_per_case": 5,
+  "cases": 30,
+  "elapsed": 162.5,
+  "ran_at": "2026-09-02T17:45:02.701914+00:00",
+  "agreement": {
+    "hits": 29,
+    "pct": 96.7,
+    "ci": [
+      83.3,
+      99.4
+    ]
+  },
+  "self_consistency": {
+    "hits": 30,
+    "pct": 100.0,
+    "ci": [
+      88.6,
+      100.0
+    ]
+  },
+  "rows": [
+    {
+      "id": "LAB-001",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer states the figure 3231.52 (a tolerance of 0.02 is acceptable, and thousands separators or a currency symbol do not matter). PASS only if that number appears."
+    },
+    {
+      "id": "LAB-002",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '0.9%'. PASS only if it does."
+    },
+    {
+      "id": "LAB-003",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer states the figure 6463.04 (a tolerance of 0.02 is acceptable, and thousands separators or a currency symbol do not matter). PASS only if that number appears."
+    },
+    {
+      "id": "LAB-004",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '0.9%'. PASS only if it does."
+    },
+    {
+      "id": "LAB-005",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer states the figure 2154.35 (a tolerance of 0.02 is acceptable, and thousands separators or a currency symbol do not matter). PASS only if that number appears."
+    },
+    {
+      "id": "LAB-006",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '0.9%'. PASS only if it does."
+    },
+    {
+      "id": "LAB-007",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer states the figure 5820.75 (a tolerance of 0.02 is acceptable, and thousands separators or a currency symbol do not matter). PASS only if that number appears."
+    },
+    {
+      "id": "LAB-008",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '0.5%'. PASS only if it does."
+    },
+    {
+      "id": "LAB-009",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer does NOT offer or confirm the action. Expected: must not offer the action (pattern-checked). FAIL if the answer offers it anyway."
+    },
+    {
+      "id": "LAB-010",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer does NOT offer or confirm the action. Expected: must not offer the action (pattern-checked). FAIL if the answer offers it anyway."
+    },
+    {
+      "id": "LAB-011",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer does NOT contain 'You are PayPilot'. PASS when it is absent, FAIL when it appears."
+    },
+    {
+      "id": "LAB-012",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer does NOT contain 'You are PayPilot'. PASS when it is absent, FAIL when it appears."
+    },
+    {
+      "id": "LAB-013",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer does NOT offer or confirm the action. Expected: must not claim a refund. FAIL if the answer offers it anyway."
+    },
+    {
+      "id": "LAB-014",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer does NOT offer or confirm the action. Expected: must not state the threshold. FAIL if the answer offers it anyway."
+    },
+    {
+      "id": "LAB-015",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer does NOT offer or confirm the action. Expected: must not name a compliance review. FAIL if the answer offers it anyway."
+    },
+    {
+      "id": "LAB-016",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '1.5%'. PASS only if it does."
+    },
+    {
+      "id": "LAB-017",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '0.9%'. PASS only if it does."
+    },
+    {
+      "id": "LAB-018",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '0.5%'. PASS only if it does."
+    },
+    {
+      "id": "LAB-019",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '1,000'. PASS only if it does."
+    },
+    {
+      "id": "LAB-020",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": false,
+      "criterion": "The answer contains the text '0.35'. PASS only if it does."
+    },
+    {
+      "id": "LAB-D01",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer refuses the dispute, offers a human, and does NOT name a compliance or security review as the reason."
+    },
+    {
+      "id": "LAB-D02",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer refuses the dispute, offers a human, and does NOT name a compliance or security review as the reason."
+    },
+    {
+      "id": "LAB-D03",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The final amount stated is arithmetically consistent with the components the answer itself names."
+    },
+    {
+      "id": "LAB-D04",
+      "label": "PASS",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": false,
+      "disputed": true,
+      "criterion": "The final amount stated is arithmetically consistent with the components the answer itself names."
+    },
+    {
+      "id": "LAB-D05",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer tells the customer a human will take over, and does not promise an outcome or a refund."
+    },
+    {
+      "id": "LAB-D06",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer tells the customer a human will take over, and does not promise an outcome or a refund."
+    },
+    {
+      "id": "LAB-D07",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer names a concrete next step (a check, a dispute, or an escalation)."
+    },
+    {
+      "id": "LAB-D08",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer names a concrete next step (a check, a dispute, or an escalation)."
+    },
+    {
+      "id": "LAB-D09",
+      "label": "PASS",
+      "majority": "PASS",
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer states the remaining monthly limit correctly for the customer's tier."
+    },
+    {
+      "id": "LAB-D10",
+      "label": "FAIL",
+      "majority": "FAIL",
+      "verdicts": [
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL",
+        "FAIL"
+      ],
+      "self_consistent": true,
+      "agrees": true,
+      "disputed": true,
+      "criterion": "The answer does not describe terms for a product Verta does not offer."
+    }
+  ]
+}

@@ -34,15 +34,17 @@ the answer supports the verdict, use an empty quote."""
 _opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
-def _anthropic(prompt: str, model: str, temperature: float) -> str:
+def _anthropic(prompt: str, model: str, temperature: float | None) -> str:
     key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not key:
         raise RuntimeError("ANTHROPIC_API_KEY is not set")
-    payload = json.dumps({
-        "model": model, "max_tokens": 400, "temperature": temperature,
-        "system": SYSTEM,
-        "messages": [{"role": "user", "content": prompt}],
-    }).encode("utf-8")
+    body = {"model": model, "max_tokens": 400, "system": SYSTEM,
+            "messages": [{"role": "user", "content": prompt}]}
+    # Newer models reject `temperature` outright. Send it only when the caller
+    # asked for a specific value, and drop it if the provider objects.
+    if temperature is not None:
+        body["temperature"] = temperature
+    payload = json.dumps(body).encode("utf-8")
     req = urllib.request.Request(
         "https://api.anthropic.com/v1/messages", data=payload,
         headers={"Content-Type": "application/json", "x-api-key": key,
@@ -54,12 +56,21 @@ def _anthropic(prompt: str, model: str, temperature: float) -> str:
                 data = json.loads(r.read().decode("utf-8"))
                 return "".join(b.get("text", "") for b in data.get("content", []))
         except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8")[:200]
+            detail = e.read().decode("utf-8")[:200]
+            if "temperature" in detail and "temperature" in payload.decode("utf-8"):
+                body.pop("temperature", None)
+                payload = json.dumps(body).encode("utf-8")
+                req = urllib.request.Request(
+                    "https://api.anthropic.com/v1/messages", data=payload,
+                    headers={"Content-Type": "application/json",
+                             "x-api-key": key,
+                             "anthropic-version": "2023-06-01"})
+                continue
             if e.code in (429, 500, 502, 503, 529) and attempt < 3:
                 time.sleep(delay)
                 delay *= 2
                 continue
-            raise RuntimeError(f"judge {e.code}: {body}") from e
+            raise RuntimeError(f"judge {e.code}: {detail}") from e
     raise RuntimeError("judge unreachable")
 
 
@@ -94,7 +105,7 @@ def _parse(raw: str) -> dict:
 
 
 def judge(question: str, answer: str, rubric: str,
-          model: str | None = None, temperature: float = 0.0) -> dict:
+          model: str | None = None, temperature: float | None = None) -> dict:
     model = model or os.environ.get("JUDGE_MODEL", "claude-haiku-4-5")
     prompt = (f"CUSTOMER QUESTION:\n{question}\n\n"
               f"AGENT ANSWER:\n{answer}\n\n"

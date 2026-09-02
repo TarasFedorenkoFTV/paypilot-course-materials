@@ -70,8 +70,17 @@ def main() -> int:
                 v = judge(case["input"], case["answer_under_test"],
                           meta["rubric"], MODEL)["verdict"]
             except Exception as e:
-                print(f"  judge error on {case['id']}: {str(e)[:120]}")
-                v = "ERROR"
+                # A failed call is a failed MEASUREMENT, not a FAIL verdict.
+                # The first version of this script counted errors as verdicts
+                # and published a confident "0% agreement" derived from 150
+                # rejected API calls. Abort instead: no number is better than
+                # a wrong one.
+                raise SystemExit(
+                    chr(10) + "measurement aborted on " + case["id"]
+                    + ": " + str(e)[:200] + chr(10)
+                    + "Nothing was written. Fix the judge call and re-run:"
+                      " a calibration number from failed calls is worse"
+                      " than none.")
             verdicts.append(v)
         majority = max(set(verdicts), key=verdicts.count)
         self_consistent = verdicts.count(majority) == RUNS
