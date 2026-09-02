@@ -111,11 +111,12 @@ def run_turn(session_id: str | None, user_message: str) -> dict:
                                   "tool_calls": resp.tool_calls})
         for tc in resp.tool_calls:
             result = _execute_tool(trace, tc)
-            if tc["name"] == "search_knowledge_base" and "fragments" in result:
-                pass  # retrieval attributes already recorded inside _execute_tool
             state["messages"].append({
                 "role": "tool", "tool_call_id": tc["id"], "name": tc["name"],
                 "content": json.dumps(result, ensure_ascii=False)})
+            if defects.is_on("D14") and _is_empty_result(result):
+                total_in, total_out = _d14_retry_loop(
+                    trace, provider, system, state, tc, total_in, total_out)
     else:
         answer = "I could not complete this request within the step budget."
         state["messages"].append({"role": "assistant", "content": answer})
@@ -131,25 +132,70 @@ def run_turn(session_id: str | None, user_message: str) -> dict:
 
 
 def _execute_tool(trace: RequestTrace, tc: dict) -> dict:
-    """One logical tool call; under D14 an empty result triggers identical
-    retries, each recorded as its own span (the loop pays, state does not)."""
-    attempts = _EMPTY_RETRY_LIMIT if defects.is_on("D14") else 1
-    result: dict = {}
-    for attempt in range(attempts):
-        with trace.span(f"tool.{tc['name']}",
-                        **{"tool.name": tc["name"],
-                           "tool.arguments": tc["arguments"],
-                           "tool.retry_attempt": attempt}) as s:
-            result = tools.dispatch(tc["name"], tc["arguments"])
-            s.attributes["tool.result"] = result
-            if tc["name"] == "search_knowledge_base" and isinstance(result, dict):
-                s.attributes.update({
-                    "retrieval.query": tc["arguments"].get("query"),
-                    "retrieval.index": result.get("index"),
-                    "retrieval.fragments": [
-                        {"id": f["id"], "score": f["score"]}
-                        for f in result.get("fragments", [])],
-                })
+    """One tool call, recorded with its arguments and its result.
+
+    D14 does NOT loop here. Retrying the tool in place costs nothing measurable
+    (the tools are local), so the defect showed up in the trace shape while
+    tokens and latency stayed flat — which contradicts what the defect is
+    supposed to teach. The retry is driven from the orchestration loop
+    instead: see _retry_hint().
+    """
+    with trace.span(f"tool.{tc['name']}",
+                    **{"tool.name": tc["name"],
+                       "tool.arguments": tc["arguments"]}) as s:
+        result = tools.dispatch(tc["name"], tc["arguments"])
+        s.attributes["tool.result"] = result
+        if tc["name"] == "search_knowledge_base" and isinstance(result, dict):
+            s.attributes.update({
+                "retrieval.query": tc["arguments"].get("query"),
+                "retrieval.index": result.get("index"),
+                "retrieval.fragments": [
+                    {"id": f["id"], "score": f["score"]}
+                    for f in result.get("fragments", [])],
+            })
+    return result
+
+
+def _d14_retry_loop(trace: RequestTrace, provider, system: str, state: dict,
+                    tc: dict, total_in: int, total_out: int) -> tuple[int, int]:
+    """D14: the orchestrator treats an empty tool result as a transient failure
+    and retries the SAME call with the SAME arguments, up to eight times.
+
+    The retry is driven from here, in code, and each attempt goes through the
+    model — which is where the latency and the tokens actually go. Two earlier
+    versions of this were wrong and are worth naming:
+
+      * retrying only the tool: deterministic, but the tools are local, so
+        tokens and latency stayed flat and the defect was invisible in any
+        cost model — while ТЗ says it is paid for in exactly those two;
+      * handing the model an error and asking it to retry: a well-behaved
+        model reports the failure to the customer instead, so the loop never
+        happened at all.
+
+    State is untouched throughout: the retries only ever repeat a read.
+    """
+    for attempt in range(1, _EMPTY_RETRY_LIMIT):
+        with trace.span("llm.call", **{"agent.loop_step": f"d14-retry-{attempt}",
+                                       "d14.retry_attempt": attempt}) as s:
+            probe = provider.complete(system, _messages_for_model(state),
+                                      tools.specs())
+            s.attributes.update({
+                "gen_ai.request.model": probe.model,
+                "gen_ai.usage.input_tokens": probe.input_tokens,
+                "gen_ai.usage.output_tokens": probe.output_tokens,
+            })
+        total_in += probe.input_tokens
+        total_out += probe.output_tokens
+
+        retry_tc = {"id": uuid.uuid4().hex[:12], "name": tc["name"],
+                    "arguments": tc["arguments"]}
+        state["messages"].append({"role": "assistant", "content": None,
+                                  "tool_calls": [retry_tc]})
+        result = _execute_tool(trace, retry_tc)
+        state["messages"].append({
+            "role": "tool", "tool_call_id": retry_tc["id"],
+            "name": retry_tc["name"],
+            "content": json.dumps(result, ensure_ascii=False)})
         if not _is_empty_result(result):
             break
-    return result
+    return total_in, total_out
