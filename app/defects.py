@@ -70,7 +70,12 @@ def describe() -> dict:
         "extra_defects": sorted(
             _runtime_extra if _runtime_extra is not None else _parse_list(config.DEFECTS_ENV)),
         "active": act,
-        "details": {d: {k: REGISTRY[d][k] for k in ("title", "layer", "determinism")}
+        # Only what the registry actually carries. The student-facing build
+        # ships ids without titles or layers, because "what this defect does
+        # and where to look for it" is the answer to the homework.
+        "details": {d: {k: REGISTRY[d][k]
+                        for k in ("title", "layer", "determinism")
+                        if k in REGISTRY[d]}
                     for d in act},
     }
 

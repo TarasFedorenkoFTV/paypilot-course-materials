@@ -323,7 +323,8 @@ function renderDefects(d){
     s.className = 'dchip' + (inProfile ? ' profile' : (on ? ' active' : ''));
     s.textContent = id;
     const info = d.details[id];
-    s.title = info ? info.title + ' · ' + info.layer + ' · ' + info.determinism : id;
+    s.title = info ? [info.title, info.layer, info.determinism]
+                       .filter(Boolean).join(' · ') || id : id;
     if(!inProfile) s.onclick = function(){ toggleDefect(id); };
     box.appendChild(s);
   });

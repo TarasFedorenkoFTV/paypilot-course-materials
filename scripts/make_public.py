@@ -1,0 +1,255 @@
+"""Build the student-facing tree from this (private) repository.
+
+Why this exists
+---------------
+The first public release was made by hand and its commit message said "without
+course materials or homework answers". That was wrong. `Grids/` and
+`solutions/` were indeed excluded, but `docs/defect-catalog.md` went out — and
+the catalog *is* an answer key: it names, for every defect, what it does, which
+profile carries it, how often it fires and **where to look for it**. A student
+agent given only the public materials confirmed it could submit both of the
+first homeworks without ever talking to the stand.
+
+So the split is now mechanical and reviewable instead of remembered.
+
+What the line is
+----------------
+The student gets the system and every surface needed to investigate it. The
+student does not get the curated conclusions: what each defect does, which
+requests reproduce it, where its effect is observable, and how often it fires.
+
+  student  : run it, watch it, read its traces, read its source
+  lecturer : the catalog, the per-lesson scripts, expected results, frequencies
+
+What this cannot hide, stated plainly
+-------------------------------------
+The stand runs on the student's own machine, so its source is readable. A
+student who reads `app/agent/tools.py` will find `if defects.is_on("D22")`
+next to the field it corrupts. That is deliberate and unavoidable: removing it
+would mean maintaining a second, divergent copy of the application, which is a
+worse problem than the one it solves. Reading the code to work out what a
+system does is legitimate QA work and takes real effort; copying a table that
+already contains the conclusion is not. Only hosting the stand centrally —
+students get a URL, never the source — closes the gap completely.
+
+Usage:
+  python scripts/make_public.py --dest D:/paypilot-public
+  python scripts/make_public.py --dest D:/paypilot-public --check
+"""
+import argparse
+import re
+import shutil
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+# --- directories copied wholesale, minus the deny rules below ---------------
+CODE_DIRS = ["app", "prompts", "specs", "tests"]
+
+# --- everything else is named explicitly ------------------------------------
+ROOT_FILES = ["Dockerfile", "docker-compose.yml", "Makefile", "LICENSE",
+              "requirements.txt", ".env.example", ".gitignore"]
+
+# Only these leave docs/. Anything added to docs/ later stays private by
+# default, which is the safe direction for this particular mistake.
+PUBLIC_DOCS = [
+    "architecture.md",   # how the system is built — needed to investigate it
+    "traces.md",         # span and attribute reference — needed to assert on
+]
+
+# Only these leave scripts/. doctor and ci_smoke are diagnostics; the rest
+# (calibrate, scenarios, walkthrough, gen_catalog) carry reproduction queries,
+# detectors and expected results.
+PUBLIC_SCRIPTS = ["doctor.py", "ci_smoke.py"]
+
+# Paths inside the code dirs that must not ship.
+DENY = [
+    "__pycache__", ".pytest_cache",
+    # names every defect's behaviour, one assertion at a time
+    "tests/test_defects.py",
+    # these two assert against lecturer-only artefacts (the seed-data tariff
+    # table, corridors.yaml, calibration-report.json), so they cannot pass in
+    # the student tree and they describe evidence the student does not get
+    "tests/test_docs_match_policy.py",
+    "tests/test_acceptance_findings.py",
+]
+
+# Lecturer-only, listed so --check can prove they are absent.
+MUST_BE_ABSENT = [
+    "docs/defect-catalog.md", "docs/lesson-guide.md", "docs/lecturer-runbook.md",
+    "docs/walkthrough-report.md", "docs/calibration-report.json",
+    "docs/calibration-history", "docs/divergences.md", "docs/seed-data.md",
+    "docs/ONBOARDING.md", "docs/acceptance-review-customer.md",
+    "docs/acceptance-review-student.md", "profiles/corridors.yaml",
+    "scripts/calibrate.py", "scripts/scenarios.py", "scripts/walkthrough.py",
+    "scripts/gen_catalog.py", "scripts/make_public.py",
+    "tests/test_defects.py", "tests/test_docs_match_policy.py",
+    "tests/test_acceptance_findings.py", "solutions", "Grids",
+]
+
+# Phrases that must never appear anywhere in the public tree: each one hands a
+# student a conclusion they were asked to reach. Checked verbatim by --check.
+FORBIDDEN_PHRASES = [
+    "Застереження для лектора",
+    "текстова перевірка тут зелена",
+    "Видно в:",
+    "заміряна частота",
+]
+
+
+def _denied(rel: str) -> bool:
+    rel = rel.replace("\\", "/")
+    return any(d in rel for d in DENY)
+
+
+def _copy_tree(src: Path, dest: Path, log: list[str]) -> None:
+    for p in sorted(src.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(ROOT).as_posix()
+        if _denied(rel):
+            log.append(f"  skip  {rel}")
+            continue
+        target = dest / p.relative_to(ROOT)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(p, target)
+
+
+def strip_defect_registry(text: str) -> str:
+    """profiles/defects.yaml -> ids only.
+
+    The stand needs the ids at runtime to validate a configuration and to
+    report which defects are active. It does not need the titles, and a title
+    like "Daily presented as monthly" is most of the homework.
+    """
+    out = ["# Defect registry, student build: identifiers only.",
+           "#",
+           "# The stand validates configuration against this list and reports",
+           "# which defects are active. What each one does is not here — that",
+           "# is what you are asked to find out.",
+           "",
+           "defects:"]
+    for did in sorted(set(re.findall(r"^\s{2}(D\d{2}):", text, re.M))):
+        out.append(f"  {did}: {{}}")
+    return "\n".join(out) + "\n"
+
+
+def strip_profiles(text: str) -> str:
+    """profiles/profiles.yaml -> compositions without the commentary.
+
+    The composition itself has to ship: the stand loads it, and the UI already
+    shows which defects a profile carries. The trailing comments ("confirmed
+    (L03)", "D21 now implemented") are working notes and go.
+    """
+    out = ["# Lesson profiles, student build.",
+           "# A profile is the set of defects a lesson runs with.",
+           "",
+           "profiles:"]
+    for name, body in re.findall(r"^\s{2}([\w-]+):\s*\[([^\]]*)\]", text, re.M):
+        ids = ", ".join(x.strip() for x in body.split(",") if x.strip())
+        out.append(f"  {name}: [{ids}]")
+    return "\n".join(out) + "\n"
+
+
+def build(dest: Path) -> None:
+    if dest.exists():
+        for child in dest.iterdir():
+            if child.name in (".git", ".venv"):   # repo and local env survive
+                continue
+            shutil.rmtree(child) if child.is_dir() else child.unlink()
+    dest.mkdir(parents=True, exist_ok=True)
+
+    log: list[str] = []
+    for d in CODE_DIRS:
+        _copy_tree(ROOT / d, dest, log)
+
+    missing = [n for n in ROOT_FILES if not (ROOT / n).exists()]
+    if missing:
+        # A silently dropped file is how the public repo lost its LICENSE on
+        # the first mechanical build. Required root files are required.
+        raise SystemExit(f"missing from the private repo: {missing}")
+    for name in ROOT_FILES:
+        shutil.copy2(ROOT / name, dest / name)
+
+    (dest / "docs").mkdir(exist_ok=True)
+    for name in PUBLIC_DOCS:
+        shutil.copy2(ROOT / "docs" / name, dest / "docs" / name)
+
+    (dest / "scripts").mkdir(exist_ok=True)
+    for name in PUBLIC_SCRIPTS:
+        shutil.copy2(ROOT / "scripts" / name, dest / "scripts" / name)
+
+    (dest / "profiles").mkdir(exist_ok=True)
+    (dest / "profiles" / "defects.yaml").write_text(
+        strip_defect_registry((ROOT / "profiles" / "defects.yaml")
+                              .read_text(encoding="utf-8")), encoding="utf-8")
+    (dest / "profiles" / "profiles.yaml").write_text(
+        strip_profiles((ROOT / "profiles" / "profiles.yaml")
+                       .read_text(encoding="utf-8")), encoding="utf-8")
+
+    shutil.copy2(ROOT / "docs" / "README-student.md", dest / "README.md")
+
+    for line in log:
+        print(line)
+    print(f"built student tree -> {dest}")
+
+
+def check(dest: Path) -> int:
+    problems = []
+    for rel in MUST_BE_ABSENT:
+        if (dest / rel).exists():
+            problems.append(f"present but must not be: {rel}")
+
+    for p in dest.rglob("*"):
+        if not p.is_file() or ".git" in p.parts:
+            continue
+        if p.suffix.lower() not in (".md", ".yaml", ".yml", ".json", ".py",
+                                    ".html", ".txt", ""):
+            continue
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for phrase in FORBIDDEN_PHRASES:
+            if phrase in text:
+                problems.append(
+                    f"{p.relative_to(dest).as_posix()}: contains {phrase!r}")
+
+    # The key must never be tracked. Presence of a local .env is fine and
+    # expected — being committed is not.
+    ignore = (dest / ".gitignore").read_text(encoding="utf-8").splitlines()
+    if ".env" not in [line.strip() for line in ignore]:
+        problems.append(".gitignore does not exclude .env")
+
+    reg = (dest / "profiles" / "defects.yaml").read_text(encoding="utf-8")
+    if "title:" in reg or "mechanism:" in reg:
+        problems.append("profiles/defects.yaml still carries titles/mechanisms")
+
+    if problems:
+        print("FAIL — the student build leaks:")
+        for p in problems:
+            print(f"  - {p}")
+        return 1
+    print(f"OK — {len(MUST_BE_ABSENT)} lecturer paths absent, "
+          f"{len(FORBIDDEN_PHRASES)} answer phrases absent, registry stripped.")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dest", required=True)
+    ap.add_argument("--check", action="store_true",
+                    help="only verify an existing tree, do not rebuild")
+    args = ap.parse_args()
+    dest = Path(args.dest).resolve()
+    if not args.check:
+        build(dest)
+    return check(dest)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
