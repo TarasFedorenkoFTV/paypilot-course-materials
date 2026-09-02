@@ -38,10 +38,37 @@ SURFACE = {
     "D13": "trace (tool call order)", "D14": "trace (repeated spans)",
     "D15": "trace (input tokens grow)", "D16": "trace (retrieval.index)",
     "D17": "trace (retrieval.fragments)", "D18": "fixtures (judge pairs)",
-    "D19": "text + tool args", "D20": "text", "D22": "text + tool result",
+    "D19": "text + tool args", "D20": "text",
+    "D22": "tool result (check_limits.monthly_remaining_eur) — НЕ в тексті",
     "D21": "text + tool result (spread_amount)", "D23": "text (multi-turn)",
     "D24": "text", "D25": "text", "D26": "text",
     "D27": "trace (absence of escalate span)",
+}
+
+
+# Traps a lecturer would otherwise walk into. Measured, not assumed.
+CAVEATS = {
+    "D22": ("Агент **перераховує** місячний залишок з інших полів результату і "
+            "часто називає в тексті **правильне** число. Дефект живий у "
+            "`tool.check_limits` → `monthly_remaining_eur`, і ловиться лише "
+            "assertion на результат інструмента. Це головний приклад класу "
+            "«правильна проза, хибний payload» — текстова перевірка тут "
+            "зелена, а система в хибному стані."),
+    "D09": ("Заміряно **не** живим прогоном: юніт-тест перевіряє санітизацію "
+            "payload, а не виконання інʼєкції. Модель, яку ми використовуємо, "
+            "стабільно ігнорує інструкцію в назві мерчанта. Для L06 це "
+            "**сам по собі результат** — показуйте як приклад того, що "
+            "вирівняна модель тримає межу, і не обіцяйте студентам спрацювання."),
+    "D06": ("Потрібно опустити поріг згортки: "
+            "`PUT /api/_test/summarize_after {\"steps\": 2}` (без рестарту). "
+            "На типовому значенні 8 діалог заняття просто не досягає згортки, "
+            "і дефект не проявиться."),
+    "D07": ("Той самий поріг згортки, що й D06. D07 має пріоритет над D06: "
+            "коли обидва активні, підсумок **спотворюється**, а не "
+            "вичищається — інакше агент перестає йому вірити й перепитує."),
+    "D14": ("Атрибут повтору стоїть на спані `llm.call` як `d14.retry_attempt`, "
+            "а не на `tool.*`. Кожен повтор — повний оберт «модель → "
+            "інструмент», тому він коштує токенів (заміряно ×5.03)."),
 }
 
 
@@ -92,8 +119,10 @@ def main():
             f"- **Активний у профілях:** {', '.join(profiles_for(did))}",
             f"- **Видно в:** {SURFACE.get(did, '—')}",
             f"- **Сценарій відтворення:** {repro_for(did)}",
-            "",
         ]
+        if did in CAVEATS:
+            lines += ["", f"> ⚠️ **Застереження для лектора.** {CAVEATS[did]}"]
+        lines += [""]
     out = ROOT / "docs" / "defect-catalog.md"
     out.write_text("\n".join(lines), encoding="utf-8")
     print(f"catalog -> {out}  ({len(REGISTRY)} defects)")

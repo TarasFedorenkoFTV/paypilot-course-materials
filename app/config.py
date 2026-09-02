@@ -5,6 +5,32 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def _load_dotenv() -> None:
+    """Read ROOT/.env into the environment before anything below is evaluated.
+
+    The scripts (calibrate, walkthrough, doctor) used to do this each on their
+    own, so `make dev` came up on the mock provider with an empty clock even
+    when .env was filled in — the single most confusing first-run failure.
+    A real environment variable always wins over the file, so `PROFILE=... make`
+    and docker-compose keep working unchanged.
+    """
+    env_file = ROOT / ".env"
+    if not env_file.exists():
+        return
+    for raw in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+_load_dotenv()
 PROMPTS_DIR = ROOT / "prompts"
 PROFILES_FILE = ROOT / "profiles" / "profiles.yaml"
 DEFECTS_FILE = ROOT / "profiles" / "defects.yaml"

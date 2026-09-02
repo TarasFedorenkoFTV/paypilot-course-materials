@@ -52,7 +52,7 @@ class RequestTrace:
         self.root = Span("agent.request", attributes={
             "session.id": session_id,
             "dialog.step_number": step_number,
-            "run.profile": config.PROFILE,
+            "run.profile": defects.current_profile(),
             "run.active_defects": sorted(defects.active()),
         })
         self._stack = [self.root]
@@ -82,7 +82,27 @@ class RequestTrace:
 
 
 def get(request_id: str) -> dict | None:
-    return _store.get(request_id)
+    """In-memory first, then the JSONL file.
+
+    The file fallback matters in class: the in-memory ring holds the last 500
+    requests and is lost on restart, so a request_id written down earlier in a
+    lesson would otherwise 404 — and the trace it points at is the evidence the
+    student is being asked to read.
+    """
+    hit = _store.get(request_id)
+    if hit is not None:
+        return hit
+    if not TRACE_FILE.exists():
+        return None
+    needle = f'"request_id": "{request_id}"'
+    with open(TRACE_FILE, encoding="utf-8") as f:
+        for line in f:
+            if needle in line:
+                try:
+                    return json.loads(line)
+                except json.JSONDecodeError:
+                    return None
+    return None
 
 
 def recent(limit: int = 20) -> list[dict]:

@@ -45,9 +45,15 @@ agent.request                     ← корінь, один на хід діа�
 `gen_ai.request.model`, `gen_ai.usage.input_tokens`,
 `gen_ai.usage.output_tokens`, `agent.loop_step`.
 
+На повторах D14 додатково: **`d14.retry_attempt`** (номер повтору) і
+`agent.loop_step` у формі `d14-retry-<N>`. Атрибут стоїть саме на `llm.call`,
+а не на `tool.*`, і це принципово: повторюється **повний** оберт «модель →
+інструмент», тому кожен повтор коштує токенів. Повтор лише інструмента був би
+безкоштовним і в бюджетному занятті (L08) нічого б не показав.
+
 ### `tool.<name>`
 `tool.name`, `tool.arguments`, `tool.result` (аргументи й результат читаються
-окремо — це різні заняття), `tool.retry_attempt` (номер повтору, ядро D14).
+окремо — це різні заняття).
 
 Для `tool.search_knowledge_base` додатково: `retrieval.query`,
 `retrieval.index` (`kb_clean` / `kb_broken` — ядро D16),

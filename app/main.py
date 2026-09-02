@@ -71,7 +71,11 @@ def test_compare(body: CompareIn):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "profile": config.PROFILE,
+    # the live profile, not the import-time one: /health is what a lecturer
+    # checks after switching profiles from the UI
+    return {"status": "ok", "profile": defects.current_profile(),
+            "startup_profile": config.PROFILE,
+            "active_defects": sorted(defects.active()),
             "provider": config.LLM_PROVIDER,
             "otlp": bool(os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"))}
 
@@ -144,6 +148,70 @@ def test_set_clock(body: ClockIn):
     except ValueError as e:
         raise HTTPException(400, str(e))
     return clock.describe()
+
+
+@app.get("/api/_test/retrieval")
+def test_retrieval():
+    from app.rag import retriever
+    return {"index": retriever.active_index_name(),
+            "top_k": retriever.active_top_k(),
+            "index_env": config.KB_INDEX_ENV, "rag_top_k": config.RAG_TOP_K}
+
+
+class RetrievalIn(BaseModel):
+    top_k: int | None = None       # None -> leave unchanged
+    index: str | None = None       # "kb_clean" | "kb_broken" | "" -> defect-driven
+
+
+@app.put("/api/_test/retrieval")
+def test_set_retrieval(body: RetrievalIn):
+    """Make the retrieval knobs reachable from the stand surface.
+
+    retriever.active_top_k() and active_index_name() both read config at call
+    time, so this changes what the *agent* retrieves on the next /chat call —
+    which is what L04 needs. Before this, measuring the k trade-off or
+    comparing kb_clean against kb_broken meant editing the environment and
+    restarting, and the only proof in the walkthrough was an in-process call
+    to retriever.search() that the agent itself never went through.
+    """
+    from app.rag import retriever
+    if body.top_k is not None:
+        if not 1 <= body.top_k <= 20:
+            raise HTTPException(400, "top_k must be between 1 and 20")
+        config.RAG_TOP_K = body.top_k
+    if body.index is not None:
+        if body.index not in ("kb_clean", "kb_broken", ""):
+            raise HTTPException(400, "index must be kb_clean, kb_broken or \"\"")
+        config.KB_INDEX_ENV = body.index
+    return {"index": retriever.active_index_name(),
+            "top_k": retriever.active_top_k(),
+            "index_env": config.KB_INDEX_ENV, "rag_top_k": config.RAG_TOP_K}
+
+
+@app.get("/api/_test/summarize_after")
+def test_summarize_after():
+    return {"summarize_after_steps": config.SUMMARIZE_AFTER_STEPS}
+
+
+class SummarizeIn(BaseModel):
+    steps: int   # dialog step after which history is folded into a summary
+
+
+@app.put("/api/_test/summarize_after")
+def test_set_summarize_after(body: SummarizeIn):
+    """Lower the fold threshold so the memory lesson is reachable in a
+    four-step dialog instead of a nine-step one.
+
+    summarize.should_summarize() reads config at call time, so this takes
+    effect on the next request with no restart. Without this endpoint L05
+    (D06/D07) required setting SUMMARIZE_AFTER_STEPS in the environment and
+    restarting the stand, and docker-compose did not even pass the variable
+    through.
+    """
+    if body.steps < 1:
+        raise HTTPException(400, "steps must be >= 1")
+    config.SUMMARIZE_AFTER_STEPS = body.steps
+    return {"summarize_after_steps": config.SUMMARIZE_AFTER_STEPS}
 
 
 @app.post("/api/_test/reset")

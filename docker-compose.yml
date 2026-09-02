@@ -10,6 +10,12 @@ services:
       - LLM_MODEL=${LLM_MODEL:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      # loop knobs: without these the container ignored .env and the
+      # memory lesson (D06/D07) was unreachable inside compose
+      - MAX_AGENT_STEPS=${MAX_AGENT_STEPS:-12}
+      - SUMMARIZE_AFTER_STEPS=${SUMMARIZE_AFTER_STEPS:-8}
+      - KB_INDEX=${KB_INDEX:-}
+      - RAG_TOP_K=${RAG_TOP_K:-4}
       # traces are mirrored to Phoenix; the stand works without it too
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://phoenix:6006
       - OTEL_SERVICE_NAME=paypilot-stand

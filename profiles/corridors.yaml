@@ -1,0 +1,49 @@
+# Declared acceptance corridors — frozen BEFORE the run that tests them.
+#
+# Why this file exists
+# --------------------
+# The acceptance harness used to compute the corridor from the run it was
+# judging: whatever came out was declared correct as long as it cleared 30%.
+# A threshold chosen after seeing the result is not a threshold. The customer
+# acceptance review (docs/acceptance-review-customer.md, finding 2) called
+# this out, and it is the same mistake the course itself teaches students to
+# look for, so it cannot stand in the stand's own tooling.
+#
+# How these numbers were produced
+# -------------------------------
+# Baseline: the measured rounds recorded in docs/calibration-report.json,
+# claude-haiku-4-5, CLOCK_OVERRIDE=2026-09-15T10:00:00Z.
+# Corridor = the Wilson 95% interval of that baseline proportion, rounded
+# outward to 5%. At n=5 a clean 5/5 only supports "at least 55%" — the width
+# of these corridors is not sloppiness, it is what the sample size buys.
+#
+# Provisional status, stated plainly
+# ----------------------------------
+# The baseline was measured on the ISOLATION arm (a single defect switched on
+# over a clean profile). The harness now measures the PROFILE arm instead —
+# the real lesson configuration, with every defect that profile carries — so
+# the first profile-arm run is a genuine test against these numbers rather
+# than a restatement of them. A defect that lands outside its corridor gets
+# investigated; the corridor is not to be widened to make it fit. Re-freezing
+# is allowed only with a new frozen_at date and a note saying what changed.
+#
+# Deterministic defects have no corridor: the requirement is N/N on the
+# profile arm and 0/N on clean.
+
+frozen_at: "2026-09-02"
+baseline_model: "claude-haiku-4-5"
+baseline_arm: "isolation (single defect over clean)"
+tested_arm: "profile (set_runtime_profile)"
+
+corridors:
+  D01: {low_pct: 35, high_pct: 90, baseline: "7/10"}
+  D03: {low_pct: 70, high_pct: 100, baseline: "10/10"}
+  D05: {low_pct: 70, high_pct: 100, baseline: "10/10"}
+  D06: {low_pct: 70, high_pct: 100, baseline: "10/10"}
+  D07: {low_pct: 70, high_pct: 100, baseline: "10/10"}
+  D08: {low_pct: 55, high_pct: 100, baseline: "9/10"}
+  D13: {low_pct: 65, high_pct: 100, baseline: "8/8"}
+  D23: {low_pct: 70, high_pct: 100, baseline: "10/10"}
+  D24: {low_pct: 45, high_pct: 95, baseline: "8/10"}
+  D25: {low_pct: 55, high_pct: 100, baseline: "9/10"}
+  D27: {low_pct: 65, high_pct: 100, baseline: "8/8"}

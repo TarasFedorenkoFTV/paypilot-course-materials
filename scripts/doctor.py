@@ -10,6 +10,13 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
+# Read .env exactly the way the app does, so doctor reports what the stand
+# will actually see. Before this, doctor said "provider: mock, clock not set"
+# straight after the key had been filled in correctly — the single most
+# misleading line in the first-run instructions.
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent))
+from app import config  # noqa: E402,F401  (import populates os.environ from .env)
+
 OK, WARN, FAIL = "OK", "WARN", "FAIL"
 results: list[tuple[str, str, str]] = []
 

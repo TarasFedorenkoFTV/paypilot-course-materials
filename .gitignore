@@ -8,3 +8,4 @@ traces/
 .pytest_cache/
 lr_txt/
 solutions/evals/reports/
+docs/calibration-report.mock.json
