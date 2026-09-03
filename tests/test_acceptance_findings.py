@@ -154,3 +154,35 @@ def test_every_scenario_measures_on_a_profile():
     from scripts.scenarios import SCENARIOS
     isolation = [s["defect"] for s in SCENARIOS if not profile_for(s)]
     assert not isolation, f"still measured in isolation: {isolation}"
+
+
+# --- round 2 student: latency had no surface to assert on -------------------
+
+def test_chat_reports_elapsed_ms():
+    """US-01 asks the agent to respond quickly; the duration lived only on the
+    span tree, so a budget case had to fetch a trace to read a number the turn
+    already knew."""
+    r = client.post("/chat", json={"session_id": "lat", "message": "hi"}).json()
+    assert isinstance(r["elapsed_ms"], (int, float))
+    assert r["elapsed_ms"] >= 0
+
+
+# --- round 2 student: the source explained every defect it implemented ------
+
+def test_student_build_strips_commentary_from_app():
+    """One grep over *.py answered the homework: tools.py named seven defects
+    in its module docstring and said what each did. Stripping the identifier
+    was not enough — the surrounding prose explained the same mechanism
+    anonymously — so app/ ships without commentary at all."""
+    import sys
+    sys.path.insert(0, str(config.ROOT))
+    from scripts._scrub import blank_prose, prose_text
+    import ast as _ast
+
+    src = (config.ROOT / "app" / "agent" / "tools.py").read_text(encoding="utf-8")
+    assert "D22" in prose_text(src), "fixture drifted: source has no defect prose"
+
+    out = blank_prose(src)
+    _ast.parse(out)                                   # still valid Python
+    assert not prose_text(out).replace('""', "").strip()
+    assert 'defects.is_on("D22")' in out, "the mechanism must survive"

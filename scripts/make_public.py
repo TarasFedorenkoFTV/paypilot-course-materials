@@ -38,11 +38,14 @@ Usage:
 """
 import argparse
 import re
+import sys as _sys
 import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+_sys.path.insert(0, str(ROOT))
+from scripts._scrub import blank_prose, prose_ids, prose_text, scrub  # noqa: E402
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -103,6 +106,7 @@ MUST_BE_ABSENT = [
     # _gen_corpus builds kb_broken, i.e. it is the mechanism of D16 in prose;
     # _judge is part of the calibration harness
     "scripts/_gen_corpus.py", "scripts/_gen_corpus2.py", "scripts/_judge.py",
+    "scripts/_scrub.py",
 ]
 
 # Phrases that must never appear anywhere in the public tree.
@@ -137,6 +141,17 @@ def _copy_tree(src: Path, dest: Path, log: list[str]) -> None:
             continue
         target = dest / p.relative_to(ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
+        if p.suffix == ".py":
+            # app/ ships as it runs, without its author's notes: the code is
+            # the mechanism and the student needs it, the commentary explains
+            # the mechanism and is the answer. tests/ and scripts/ keep their
+            # prose — they are worked examples, and only the identifiers go.
+            src = p.read_text(encoding="utf-8")
+            out = blank_prose(src) if rel.startswith("app/") else scrub(src)
+            target.write_text(out, encoding="utf-8", newline=chr(10))
+            if out != src:
+                log.append(f"  scrub {rel}")
+            continue
         shutil.copy2(p, target)
 
 
@@ -274,6 +289,26 @@ def check(dest: Path) -> int:
             continue
         if found:
             problems.append(f"{rel}: names defects {', '.join(found)}")
+
+    # app/ must carry no prose at all: a sentence describing what a defective
+    # function does is the answer whether or not it names the identifier.
+    # Elsewhere, prose is fine as long as it names no defect.
+    for p in sorted(dest.rglob("*.py")):
+        if ".venv" in p.parts:
+            continue
+        try:
+            src = p.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        rel = p.relative_to(dest).as_posix()
+        if rel.startswith("app/"):
+            left = prose_text(src).replace('""', "").strip()
+            if left:
+                problems.append(f"{rel}: still carries commentary "
+                                f"({left[:60]!r})")
+        elif (found := prose_ids(src)):
+            problems.append(f"{rel}: names {', '.join(found)} in a comment "
+                            f"or docstring")
 
     reg = (dest / "profiles" / "defects.yaml").read_text(encoding="utf-8")
     if "title:" in reg or "mechanism:" in reg:

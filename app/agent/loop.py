@@ -126,8 +126,13 @@ def run_turn(session_id: str | None, user_message: str) -> dict:
         "gen_ai.usage.total_output_tokens": total_out,
     })
     tree = trace.finish()
+    # elapsed_ms is in the response because latency is a requirement in US-01
+    # and there was no surface to assert it on: the duration lived only on the
+    # span tree, so a budget case had to fetch the trace to see a number the
+    # turn already knew.
     return {"session_id": sid, "request_id": tree["request_id"],
             "answer": answer, "step_number": state["steps"],
+            "elapsed_ms": tree.get("duration_ms"),
             "usage": {"input_tokens": total_in, "output_tokens": total_out}}
 
 

@@ -13,14 +13,26 @@ AI-агент підтримки необанку **Verta**: перевіряє 
 ## Швидкий старт
 
 ```bash
-cp .env.example .env          # впишіть ключ провайдера
-python scripts/doctor.py      # діагностика: залежності, ключ, артефакти
-docker compose up --build -d  # або: make dev (локально, без docker)
+python -m venv .venv
+.venv/Scripts/pip install -r requirements.txt   # Linux/macOS: .venv/bin/pip
+cp .env.example .env                            # впишіть ключ провайдера
+python scripts/doctor.py                        # діагностика
+python -m uvicorn app.main:app --port 8000      # стенд
 ```
 
+Або через docker: `docker compose up --build -d`.
+
+`make` у репозиторії є, але на Windows його зазвичай немає — усі цілі
+Makefile — це однорядкові команди вище, запускайте їх напряму.
+
 Чат — **http://localhost:8000**. Там перемикач профілів, поштучне вмикання
-дефектів, керування часом і дерево спанів останнього ходу. Трейси також
-дзеркаляться в Phoenix на **http://localhost:6006**.
+дефектів, керування часом і дерево спанів останнього ходу.
+
+> **Phoenix (UI трасування) на http://localhost:6006** піднімається **лише
+> через docker compose**. Якщо ви запустили стенд напряму через uvicorn, порт
+> 6006 буде мертвий, і `doctor` покаже `WARN` — це нормально. Трейси в цьому
+> разі беруться через `GET /api/_test/traces/...` і з файлу
+> `traces/traces.jsonl`; обидві поверхні працюють завжди.
 
 > `.env.example` за замовчуванням ставить `LLM_PROVIDER=mock` — детерміновані
 > відповіді без ключа. Годиться, щоб перевірити, що все піднялося. **Не
@@ -42,8 +54,12 @@ curl -X POST localhost:8000/chat \
 ```json
 {"session_id": "my-run-1", "request_id": "770b66331f4f42fd",
  "answer": "Your balance is ...", "step_number": 1,
+ "elapsed_ms": 2480.3,
  "usage": {"input_tokens": 4791, "output_tokens": 157}}
 ```
+
+`elapsed_ms` і `usage` — це те, з чим працюють бюджетні вимоги: латентність і
+вартість ходу вимірюються без звернення до трейсу.
 
 Чотири речі, які варто знати одразу:
 
