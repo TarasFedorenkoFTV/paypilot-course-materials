@@ -1,5 +1,6 @@
 # Lesson profiles: which defects each lesson enables.
-# SOURCE OF TRUTH: the L01–L14 longreads (Grids/*.pdf). Compositions marked
+# SOURCE OF TRUTH: the L01-L14 course longreads, which live in the LMS and
+# are deliberately not kept in this repository. Compositions marked
 # "confirmed" are stated verbatim in the longread; the rest are derived from
 # the defects the lesson works with. Divergences: docs/divergences.md
 profiles:
