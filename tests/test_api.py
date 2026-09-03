@@ -137,3 +137,27 @@ def test_ui_reports_the_clock_the_stand_actually_applied():
     ui = _ui()
     assert "st.now" in ui
     assert "'Час прогону: ' + (v || 'реальний')" not in ui
+
+
+def test_ui_controls_the_knobs_the_lessons_need():
+    """The memory lesson cannot happen without lowering the fold threshold and
+    the retrieval lesson needs top_k and the index — both were API-only, so the
+    runbook sent a lecturer to a terminal mid-class. L01 audits the prompt as
+    an artefact and it had no on-screen surface at all."""
+    ui = _ui()
+    for handler in ("setSummarize", "setRetrieval", "togglePrompt"):
+        assert f"function {handler}" in ui, handler
+    for endpoint in ("_test/summarize_after", "_test/retrieval", "_test/prompt"):
+        assert endpoint in ui, endpoint
+
+
+def test_ui_renders_markdown_without_parsing_model_html():
+    """The model answers in markdown and the page showed the asterisks, which
+    buries the numbers on a projector. It must not be fixed with innerHTML:
+    this stand deliberately carries prompt-injection payloads, so parsing HTML
+    out of model output would be a real hole."""
+    ui = _ui()
+    assert "function renderRich" in ui
+    assert "createElement" in ui
+    body = ui.split("function renderRich")[1].split("function addMsg")[0]
+    assert "innerHTML" not in body, "model output must never reach innerHTML"

@@ -27,6 +27,8 @@
   .msg{max-width:min(760px, 100%);padding:10px 14px;border-radius:10px;
        white-space:pre-wrap;
        word-wrap:break-word}
+  .msg code{font:12px var(--mono);background:#0f1622;padding:1px 4px;
+            border-radius:4px}
   .msg.user{align-self:flex-end;background:#24405f}
   .msg.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--line)}
   .msg.sys{align-self:center;color:var(--muted);font-size:12px;background:none;
@@ -61,6 +63,9 @@
   .dchip.active{background:#3a2c14;border-color:var(--warn);color:var(--warn)}
   .dchip.profile{background:#2a1f38;border-color:#6b4ba8;color:#c4a5f0;cursor:default}
   .tree{font:12px var(--mono);white-space:pre;overflow-x:auto;color:var(--muted)}
+  #promptBox{max-height:260px;overflow:auto;background:var(--panel2);
+             border:1px solid var(--line);border-radius:8px;padding:10px;
+             font:11px var(--mono);white-space:pre-wrap;margin-top:8px}
   .tree .sp{cursor:pointer;color:var(--text)}
   .tree .sp:hover{color:var(--accent)}
   .tree .tool{color:var(--warn)} .tree .llm{color:var(--accent)}
@@ -144,6 +149,38 @@
   </div>
 
   <div>
+    <h2>Пам'ять і пошук</h2>
+    <div class="row">
+      <span class="hint" style="min-width:96px">згортка після</span>
+      <input type="text" id="sumInp" style="max-width:60px" placeholder="8">
+      <button onclick="setSummarize()">Задати</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <span class="hint" style="min-width:96px">пошук top_k</span>
+      <input type="text" id="topkInp" style="max-width:60px" placeholder="4">
+      <select id="idxSel">
+        <option value="">індекс за профілем</option>
+        <option value="kb_clean">kb_clean</option>
+        <option value="kb_broken">kb_broken</option>
+      </select>
+      <button onclick="setRetrieval()">Задати</button>
+    </div>
+    <div class="hint" style="margin-top:6px">
+      Заняття про пам'ять вимагає знизити згортку до 2 — інакше діалог не
+      дійде до неї й дефект не проявиться.
+    </div>
+  </div>
+
+  <div>
+    <h2>Системний промпт</h2>
+    <div class="row">
+      <button onclick="togglePrompt()">Показати / сховати</button>
+      <span class="hint" id="promptMeta"></span>
+    </div>
+    <pre id="promptBox" style="display:none"></pre>
+  </div>
+
+  <div>
     <h2>Трейс останнього ходу</h2>
     <div class="tree" id="tree">— зробіть запит —</div>
     <div class="attrs" id="attrs" style="margin-top:8px;display:none"></div>
@@ -188,6 +225,26 @@ function jput(body){
           body: JSON.stringify(body)};
 }
 
+// The model answers in markdown, and the page was showing the asterisks. On a
+// projector that buries the numbers, which are the whole point of the reply.
+//
+// Built as DOM nodes, never innerHTML: this stand deliberately carries prompt
+// injection payloads, so parsing HTML out of model output would be a real hole
+// rather than a theoretical one. Only **bold** and `code` are recognised.
+function renderRich(text, el){
+  const re = /\*\*([^*]+)\*\*|`([^`]+)`/g;
+  let last = 0, m;
+  while((m = re.exec(text)) !== null){
+    if(m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+    const tag = document.createElement(m[1] !== undefined ? 'strong' : 'code');
+    tag.textContent = m[1] !== undefined ? m[1] : m[2];
+    el.appendChild(tag);
+    last = re.lastIndex;
+  }
+  if(last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+  return el;
+}
+
 function addMsg(text, cls){
   const d = document.createElement('div');
   d.className = 'msg ' + cls;
@@ -207,7 +264,8 @@ async function send(){
   try{
     const res = await api('/chat', jpost({message:text, session_id:sessionId}));
     sessionId = res.session_id;
-    thinking.textContent = res.answer || '(порожня відповідь)';
+    thinking.textContent = '';
+    renderRich(res.answer || '(порожня відповідь)', thinking);
     const u = res.usage || {};
     const m = document.createElement('div');
     m.className = 'meta';
@@ -256,7 +314,7 @@ async function compare(){
       h.textContent = side.profile +
         (side.active_defects.length ? ' · ' + side.active_defects.join(',') : ' · без дефектів');
       col.appendChild(h);
-      col.appendChild(document.createTextNode(side.answer || '(порожньо)'));
+      renderRich(side.answer || '(порожньо)', col);
       const m = document.createElement('div');
       m.className = 'meta';
       const a = document.createElement('a');
@@ -493,6 +551,40 @@ async function setClock(reset){
     const st = await api('/api/_test/clock', jpost({now: v}));
     addMsg('Час прогону: ' + (st.now || 'реальний час системи'), 'sys');
     refreshState();
+  }catch(e){ fail(e); }
+}
+
+async function setSummarize(){
+  const v = parseInt($('sumInp').value.trim(), 10);
+  if(!v || v < 1){ addMsg('Вкажіть номер кроку, після якого згортати (>= 1)', 'err'); return; }
+  try{
+    const r = await api('/api/_test/summarize_after', jput({steps: v}));
+    addMsg('Згортка історії після кроку ' + r.summarize_after_steps, 'sys');
+  }catch(e){ fail(e); }
+}
+
+async function setRetrieval(){
+  const body = {};
+  const k = $('topkInp').value.trim();
+  if(k) body.top_k = parseInt(k, 10);
+  body.index = $('idxSel').value;
+  try{
+    const r = await api('/api/_test/retrieval', jput(body));
+    addMsg('Пошук: top_k ' + r.top_k + ', індекс ' + r.index, 'sys');
+  }catch(e){ fail(e); }
+}
+
+// L01 audits the prompt as an artefact, and it was only reachable with curl —
+// a lecturer had to leave the screen the class is looking at.
+async function togglePrompt(){
+  const box = $('promptBox');
+  if(box.style.display !== 'none'){ box.style.display = 'none'; return; }
+  try{
+    const p = await api('/api/_test/prompt');
+    box.textContent = p.text;
+    box.style.display = 'block';
+    $('promptMeta').textContent = p.version +
+      (p.overlays && p.overlays.length ? ' · overlay: ' + p.overlays.join(',') : ' · без overlay');
   }catch(e){ fail(e); }
 }
 
