@@ -106,6 +106,7 @@
     <span class="pill" id="pProfile">—</span>
     <span class="pill" id="pDefects">—</span>
     <span class="pill" id="pClock">—</span>
+    <span class="pill" id="pKnobs" style="display:none"></span>
     <span class="pill" id="pProvider">—</span>
     <span style="flex:1"></span>
     <button onclick="newSession()">Нова сесія</button>
@@ -487,8 +488,10 @@ function showAttrs(path){
 
 async function refreshState(){
   const results = await Promise.all([
-    api('/api/_test/defects'), api('/health'), api('/api/_test/clock')]);
-  const d = results[0], h = results[1], c = results[2];
+    api('/api/_test/defects'), api('/health'), api('/api/_test/clock'),
+    api('/api/_test/summarize_after'), api('/api/_test/retrieval')]);
+  const d = results[0], h = results[1], c = results[2],
+        sum = results[3], ret = results[4];
   profileDefects = new Set(d.profile_defects);
   extraDefects = new Set(d.extra_defects);
   $('pProfile').textContent = 'profile: ' + d.profile;
@@ -505,6 +508,24 @@ async function refreshState(){
   }
   sel.value = d.profile;
   renderDefects(d);
+
+  // Show the real values, not placeholders. Empty fields beside a placeholder
+  // of "8" and "4" told a lecturer the defaults were in force while the stand
+  // was folding at 3 and searching a broken index — the same failure the
+  // course teaches: the display looked right, the state was not.
+  $('sumInp').value = sum.summarize_after_steps;
+  $('topkInp').value = ret.top_k;
+  $('idxSel').value = ret.index_env || '';
+
+  // And a knob off its default must not hide behind a closed panel.
+  const off = [];
+  if(sum.summarize_after_steps !== 8) off.push('згортка ' + sum.summarize_after_steps);
+  if(ret.top_k !== 4) off.push('top_k ' + ret.top_k);
+  if(ret.index_env) off.push('індекс ' + ret.index_env);
+  const pk = $('pKnobs');
+  pk.textContent = off.length ? off.join(' · ') : '';
+  pk.style.display = off.length ? '' : 'none';
+  pk.className = 'pill ' + (off.length ? 'on' : '');
 }
 
 function renderDefects(d){

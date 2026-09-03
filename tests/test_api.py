@@ -161,3 +161,18 @@ def test_ui_renders_markdown_without_parsing_model_html():
     assert "createElement" in ui
     body = ui.split("function renderRich")[1].split("function addMsg")[0]
     assert "innerHTML" not in body, "model output must never reach innerHTML"
+
+
+def test_ui_shows_the_real_knob_state_not_placeholders():
+    """The stand was folding at 3 and searching kb_broken while every panel
+    field sat empty behind placeholders reading 8 and 4. A lecturer glancing at
+    it would have believed the defaults were in force — the same failure the
+    course teaches, with the display right and the state wrong. The fields are
+    filled from the server, and a knob off its default also raises a header
+    pill so it cannot hide behind a closed panel."""
+    ui = _ui()
+    assert "api('/api/_test/summarize_after')" in ui
+    assert "api('/api/_test/retrieval')" in ui
+    assert "$('sumInp').value = sum.summarize_after_steps" in ui
+    assert "$('topkInp').value = ret.top_k" in ui
+    assert "pKnobs" in ui
