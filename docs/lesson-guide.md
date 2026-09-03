@@ -61,8 +61,20 @@ Examples`). Порожній блок прикладів, неоднозначн
 
 | Що показати | Запит |
 |---|---|
-| D16 — розрізана таблиця | `Search the Verta documentation and quote the exact FX spread table for every tier.` |
+| D16 — таблиця виглядає цілою, одне число хибне | `Search the Verta documentation and quote the exact FX spread table for every tier.` |
 | D17 — половина відповіді | `Search the documentation and give me BOTH the reason code list AND the exact dispute window in days for a duplicate charge.` |
+
+> ⚠️ **D16 не дає «видимо зламаної» відповіді, і це головна пастка заняття.**
+> Агент **збирає** таблицю з порізаних фрагментів і віддає її впевнено й
+> охайно. Заміряно на живому прогоні: спреди 1.5 / 0.9 / 0.5% названі
+> правильно, а безкоштовний ліміт tier3 — **1 500 EUR замість 5 000**, з
+> зірочкою, ніби це примітка.
+>
+> Тобто дефект не в тому, що агент не може відповісти, а в тому, що він
+> **може** — і одне число неправильне, бо індекс розрізав рядок, який
+> пов'язував цифру з її умовою. Якщо ви чекаєте побачити обрізки, ви
+> вирішите, що дефект не спрацював. Порівняйте `EUR 1,500` із
+> `app/engines/policy.py` — або натисніть **clean vs профіль**.
 
 У трейсі: `retrieval.index` (`kb_clean` / `kb_broken`) і довжина
 `retrieval.fragments`. Корпус — 98 фрагментів чистих, 129 зіпсованих.
