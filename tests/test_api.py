@@ -176,3 +176,16 @@ def test_ui_shows_the_real_knob_state_not_placeholders():
     assert "$('sumInp').value = sum.summarize_after_steps" in ui
     assert "$('topkInp').value = ret.top_k" in ui
     assert "pKnobs" in ui
+
+
+def test_ui_explains_a_hung_provider_instead_of_showing_a_dot():
+    """Measured during a click-through: the TLS handshake to the provider timed
+    out and the reply bubble sat on '…' with nothing said. The client timeout
+    is 90s per model call and a retry loop makes up to nine, so "stuck" can
+    mean minutes of a page that looks frozen for no stated reason."""
+    ui = _ui()
+    assert "чекаю на провайдера" in ui
+    assert "stopWaiting" in ui
+    # cleared on both the success and the failure path, or the message would
+    # overwrite a finished answer
+    assert ui.count("stopWaiting()") >= 2

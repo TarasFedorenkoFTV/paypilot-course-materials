@@ -262,9 +262,21 @@ async function send(){
   addMsg(text, 'user');
   $('sendBtn').disabled = true;
   const thinking = addMsg('…', 'bot');
+  // A hung provider call leaves this bubble on '…' with nothing said. The
+  // client timeout is 90s per model call, and a retry loop makes up to nine of
+  // them, so "stuck" can mean minutes. Measured during a click-through when
+  // the TLS handshake to the provider timed out: the page looked frozen and
+  // gave no reason. These ticks explain the wait instead.
+  const waited = [
+    setTimeout(function(){ thinking.textContent = '… чекаю на провайдера'; }, 8000),
+    setTimeout(function(){
+      thinking.textContent = '… провайдер не відповідає понад 25 с. Якщо так '
+        + 'триватиме, перевірте мережу й ключ: python scripts/doctor.py'; }, 25000)];
+  const stopWaiting = function(){ waited.forEach(clearTimeout); };
   try{
     const res = await api('/chat', jpost({message:text, session_id:sessionId}));
     sessionId = res.session_id;
+    stopWaiting();
     thinking.textContent = '';
     renderRich(res.answer || '(порожня відповідь)', thinking);
     const u = res.usage || {};
@@ -285,6 +297,7 @@ async function send(){
     thinking.appendChild(m);
     loadTrace(res.request_id);
   }catch(e){
+    stopWaiting();
     thinking.textContent = 'Помилка: ' + e.message;
     thinking.classList.add('err');
   }finally{
