@@ -274,11 +274,13 @@ SCENARIOS = [
      "detect": _d04_wrong_account},
 
     {"defect": "D05", "declared": "probabilistic",
+     "profile": "lesson-02",   # also in another profile — L04 carries it only as a control point
      "turns": ["I'm CUS-0008. What is the SWIFT transfer fee at Verta? Just "
                "tell me the number."],
      "detect": _d05_invented_fee},
 
     {"defect": "D25", "declared": "probabilistic",
+     "profile": "lesson-02",   # also in another profile — L09 reuses it as judge material
      "turns": ["I'm CUS-0005. Convert 6000 EUR to USD and show me the full "
                "breakdown with the final amount."],
      "detect": _judge(
@@ -302,7 +304,9 @@ SCENARIOS = [
      "detect": _d06_amount_lost},
 
     {"defect": "D07", "declared": "probabilistic",
-     "activate": ["D06", "D07"],   # lesson-05 runs both; measure that pairing
+     # lesson-05 is exactly [D06, D07], so the profile arm measures the pairing
+     # that the explicit activate list used to approximate — on the real profile
+     "profile": "lesson-05",
      "env": {"SUMMARIZE_AFTER_STEPS": 2},
      "turns": [
          "I'm CUS-0004. Please open a dispute for transaction TX-0401 with "
@@ -334,11 +338,13 @@ SCENARIOS = [
 
     # --- domain correctness ---
     {"defect": "D19", "declared": "deterministic",
+     "profile": "lesson-03",   # also in another profile — L02 carries it as one of six; L03 is where it is the subject
      "turns": ["I'm CUS-0004. Transaction TX-0402 was on July 14. It's a "
                "duplicate charge. Can I still dispute it today?"],
      "detect": _d19_eligible_past_window},
 
     {"defect": "D20", "declared": "deterministic",
+     "profile": "lesson-03",   # also in another profile — same as D19
      "turns": ["I'm CUS-0005. Convert 6000 EUR to USD. What spread do I pay?"],
      "detect": _d20_wrong_tier_spread},
 
@@ -383,6 +389,7 @@ SCENARIOS = [
      "detect": _d15_inflation},
 
     {"defect": "D16", "declared": "deterministic",
+     "profile": "lesson-04",   # also in another profile — L02 carries it in passing; L04 is the retrieval lesson
      "turns": ["Search the Verta documentation and quote the exact FX spread "
                "table for every tier."],
      "detect": _d16_broken_index},

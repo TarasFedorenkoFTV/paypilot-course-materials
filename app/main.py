@@ -46,12 +46,18 @@ def test_compare(body: CompareIn):
     profile), so the stand does it in one call instead of making the student
     flip flags twice and hope nothing else changed in between."""
     target = body.profile or defects.current_profile()
-    saved_profile, saved_extra = defects.current_profile(), None
+    saved_profile = defects.current_profile()
+    # Defects pinned individually (the chips in the UI) are part of what the
+    # lecturer is demonstrating. compare used to wipe them for both arms and
+    # then reset to the environment, so a pinned defect vanished for good and
+    # "clean vs D19 on the clean profile" compared clean against clean.
+    saved_extra = ",".join(defects.describe()["extra_defects"])
     out = {}
     try:
-        for label, prof in (("clean", "clean"), ("profile", target)):
+        for label, prof, extra in (("clean", "clean", ""),
+                                   ("profile", target, saved_extra)):
             defects.set_runtime_profile(prof)
-            defects.set_runtime_defects("")
+            defects.set_runtime_defects(extra)
             loop.reset_sessions()
             res = loop.run_turn(None, body.message)
             out[label] = {
@@ -65,7 +71,7 @@ def test_compare(body: CompareIn):
         raise HTTPException(400, str(e))
     finally:
         defects.set_runtime_profile(saved_profile)
-        defects.set_runtime_defects(None)
+        defects.set_runtime_defects(saved_extra)
     return out
 
 

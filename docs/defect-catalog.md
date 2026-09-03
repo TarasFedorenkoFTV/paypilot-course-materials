@@ -2,7 +2,7 @@
 
 Автогенеровано з `profiles/defects.yaml`, `profiles/profiles.yaml` і `docs/calibration-report.json`. Оновлювати: `python scripts/gen_catalog.py`.
 
-Заміряно: **24 дефектів**, приймається **24/24**. Провайдер: default.
+Заміряно: **24 дефектів**, приймається **24/24**. Провайдер: default (модель за замовчуванням провайдера), рука: ізоляційна (до переробки інструмента).
 
 ## D01 — Conflicting fee instructions
 - **Механізм:** Prompt forbids quoting exact fee amounts AND forbids referring the client to documentation; fee questions become unresolvable, the agent picks a branch anew each run.
@@ -67,7 +67,7 @@
 - **Режим і заміряна частота:** probabilistic — 100.0% (10/10), clean 0/10  ✅
 - **Активний у профілях:** lesson-05
 - **Видно в:** text
-- **Сценарій відтворення:** (activate D06,D07) "I'm CUS-0004. Please open a dispute for transaction TX-0401 with reason code duplicate_charge, amount 240.00 EUR." → "Thanks. How does the review process work in general?" → "And what are the typical timelines?" → "Just confirm back to me: what is the exact reason code recorded on my dispute case?"
+- **Сценарій відтворення:** "I'm CUS-0004. Please open a dispute for transaction TX-0401 with reason code duplicate_charge, amount 240.00 EUR." → "Thanks. How does the review process work in general?" → "And what are the typical timelines?" → "Just confirm back to me: what is the exact reason code recorded on my dispute case?"
 
 > ⚠️ **Застереження для лектора.** Той самий поріг згортки, що й D06. D07 має пріоритет над D06: коли обидва активні, підсумок **спотворюється**, а не вичищається — інакше агент перестає йому вірити й перепитує.
 

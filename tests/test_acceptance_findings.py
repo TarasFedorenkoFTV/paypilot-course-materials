@@ -119,3 +119,38 @@ def test_corridors_are_declared_up_front():
     for did, c in data["corridors"].items():
         assert 0 <= c["low_pct"] <= c["high_pct"] <= 100, did
         assert c["low_pct"] >= 30, f"{did}: a defect below 30% is not teachable"
+
+
+# --- round 2: compare wiped the defects the lecturer had pinned -------------
+
+def test_compare_keeps_pinned_defects():
+    """The runbook tells lecturers to pin a defect and then hit compare.
+    compare used to clear the pinned set for both arms and reset to the
+    environment afterwards, so the pin was lost and clean was compared against
+    clean."""
+    client.put("/api/_test/profile", json={"profile": "clean"})
+    client.put("/api/_test/defects", json={"defects": "D19,D26"})
+    before = client.get("/api/_test/defects").json()["active"]
+    assert sorted(before) == ["D19", "D26"]
+
+    r = client.post("/api/_test/compare",
+                    json={"message": "hi", "profile": "clean"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["clean"]["active_defects"] == []
+    assert sorted(body["profile"]["active_defects"]) == ["D19", "D26"]
+
+    after = client.get("/api/_test/defects").json()["active"]
+    assert sorted(after) == ["D19", "D26"], "compare lost the pinned defects"
+
+
+def test_every_scenario_measures_on_a_profile():
+    """Six defects sat in two profiles each, so the harness could not pick one
+    and silently fell back to measuring them in isolation over clean — which is
+    the arm the previous round rejected."""
+    import sys
+    sys.path.insert(0, str(config.ROOT))
+    from scripts.calibrate import profile_for
+    from scripts.scenarios import SCENARIOS
+    isolation = [s["defect"] for s in SCENARIOS if not profile_for(s)]
+    assert not isolation, f"still measured in isolation: {isolation}"

@@ -51,15 +51,26 @@ if hasattr(sys.stdout, "reconfigure"):
 CODE_DIRS = ["app", "prompts", "specs", "tests", ".github"]
 
 # --- everything else is named explicitly ------------------------------------
-ROOT_FILES = ["Dockerfile", "docker-compose.yml", "Makefile", "LICENSE",
+ROOT_FILES = ["Dockerfile", "docker-compose.yml", "LICENSE",
               "requirements.txt", ".env.example", ".gitignore"]
 
 # Only these leave docs/. Anything added to docs/ later stays private by
 # default, which is the safe direction for this particular mistake.
-PUBLIC_DOCS = [
-    "architecture.md",   # how the system is built — needed to investigate it
-    "traces.md",         # span and attribute reference — needed to assert on
-]
+# docs/ ships nothing verbatim. Round-2 acceptance found that traces.md
+# carried a seven-row "defect -> trace signature" table and architecture.md
+# named eight defect ids in its prose — both of them answer keys shipped under
+# the heading of reference material. Each public document is now written for
+# the student and mapped here, private source -> public name.
+PUBLIC_DOCS = {
+    "architecture-student.md": "architecture.md",
+    "traces-student.md": "traces.md",
+}
+
+# Same idea for root files that differ between the two audiences.
+PUBLIC_ROOT_FROM_DOCS = {
+    "README-student.md": "README.md",
+    "Makefile.student": "Makefile",
+}
 
 # Only these leave scripts/. doctor and ci_smoke are diagnostics; the rest
 # (calibrate, scenarios, walkthrough, gen_catalog) carry reproduction queries,
@@ -94,14 +105,21 @@ MUST_BE_ABSENT = [
     "scripts/_gen_corpus.py", "scripts/_gen_corpus2.py", "scripts/_judge.py",
 ]
 
-# Phrases that must never appear anywhere in the public tree: each one hands a
-# student a conclusion they were asked to reach. Checked verbatim by --check.
+# Phrases that must never appear anywhere in the public tree.
 FORBIDDEN_PHRASES = [
     "Застереження для лектора",
     "текстова перевірка тут зелена",
     "Видно в:",
     "заміряна частота",
 ]
+
+# Grepping for phrases only catches the wording you thought of: round 2 found a
+# whole answer table that none of the four phrases matched. The durable rule is
+# structural — no prose in the student tree names a defect. Ids may appear only
+# where the stand needs them as bare data.
+ID_PATTERN = re.compile(r"(?<![A-Za-z0-9])D[0-9]{2}(?![0-9])")
+ID_ALLOWED = {"profiles/defects.yaml", "profiles/profiles.yaml"}
+ID_CHECKED_SUFFIXES = (".md", "")     # docs, README, Makefile, LICENSE
 
 
 def _denied(rel: str) -> bool:
@@ -166,6 +184,13 @@ def build(dest: Path) -> None:
             shutil.rmtree(child) if child.is_dir() else child.unlink()
     dest.mkdir(parents=True, exist_ok=True)
 
+    # A real .env in the destination is a live key sitting in the tree that
+    # gets handed out. It is gitignored, so nothing catches it — round-2
+    # acceptance found one there, copied in during testing.
+    stray_env = dest / ".env"
+    if stray_env.exists():
+        stray_env.unlink()
+
     log: list[str] = []
     for d in CODE_DIRS:
         _copy_tree(ROOT / d, dest, log)
@@ -182,8 +207,11 @@ def build(dest: Path) -> None:
         raise SystemExit("CI workflow did not make it into the student tree")
 
     (dest / "docs").mkdir(exist_ok=True)
-    for name in PUBLIC_DOCS:
-        shutil.copy2(ROOT / "docs" / name, dest / "docs" / name)
+    for src_name, public_name in PUBLIC_DOCS.items():
+        shutil.copy2(ROOT / "docs" / src_name, dest / "docs" / public_name)
+
+    for src_name, public_name in PUBLIC_ROOT_FROM_DOCS.items():
+        shutil.copy2(ROOT / "docs" / src_name, dest / public_name)
 
     (dest / "scripts").mkdir(exist_ok=True)
     for name in PUBLIC_SCRIPTS:
@@ -196,8 +224,6 @@ def build(dest: Path) -> None:
     (dest / "profiles" / "profiles.yaml").write_text(
         strip_profiles((ROOT / "profiles" / "profiles.yaml")
                        .read_text(encoding="utf-8")), encoding="utf-8")
-
-    shutil.copy2(ROOT / "docs" / "README-student.md", dest / "README.md")
 
     for line in log:
         print(line)
@@ -225,11 +251,29 @@ def check(dest: Path) -> int:
                 problems.append(
                     f"{p.relative_to(dest).as_posix()}: contains {phrase!r}")
 
-    # The key must never be tracked. Presence of a local .env is fine and
-    # expected — being committed is not.
+    # A key in the student tree is a leak even when git never sees it: the
+    # tree itself is the thing distributed.
+    if (dest / ".env").exists():
+        problems.append(".env is present in the student tree — it carries a live key")
+
+    # The key must never be tracked either.
     ignore = (dest / ".gitignore").read_text(encoding="utf-8").splitlines()
     if ".env" not in [line.strip() for line in ignore]:
         problems.append(".gitignore does not exclude .env")
+
+    # No student-facing prose may name a defect.
+    for p in sorted(dest.rglob("*")):
+        if not p.is_file() or ".git" in p.parts or ".venv" in p.parts:
+            continue
+        rel = p.relative_to(dest).as_posix()
+        if rel in ID_ALLOWED or p.suffix.lower() not in ID_CHECKED_SUFFIXES:
+            continue
+        try:
+            found = sorted(set(ID_PATTERN.findall(p.read_text(encoding="utf-8"))))
+        except (UnicodeDecodeError, OSError):
+            continue
+        if found:
+            problems.append(f"{rel}: names defects {', '.join(found)}")
 
     reg = (dest / "profiles" / "defects.yaml").read_text(encoding="utf-8")
     if "title:" in reg or "mechanism:" in reg:
@@ -241,7 +285,8 @@ def check(dest: Path) -> int:
             print(f"  - {p}")
         return 1
     print(f"OK — {len(MUST_BE_ABSENT)} lecturer paths absent, "
-          f"{len(FORBIDDEN_PHRASES)} answer phrases absent, registry stripped.")
+          f"{len(FORBIDDEN_PHRASES)} answer phrases absent, registry "
+          f"stripped, no defect named in student prose.")
     return 0
 
 

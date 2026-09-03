@@ -81,6 +81,12 @@ CAVEATS = {
 }
 
 
+_REPORT_META = (json.loads(report_path.read_text(encoding="utf-8"))
+                if report_path.exists() else {})
+_ARMS = ", ".join(sorted({r.get("arm", "ізоляційна (до переробки інструмента)")
+                          .split(":")[0] for r in REPORT.values()})) if REPORT else ""
+
+
 def profiles_for(did):
     return [p for p, ds in PROFILES.items() if did in ds] or ["—"]
 
@@ -115,7 +121,10 @@ def main():
         acc = sum(1 for r in REPORT.values() if r["accept"])
         lines += [f"Заміряно: **{len(REPORT)} дефектів**, приймається "
                   f"**{acc}/{len(REPORT)}**. Провайдер: "
-                  f"{json.loads(report_path.read_text(encoding='utf-8')).get('model','?')}.",
+                  f"{_REPORT_META.get('model') or '?'}"
+                  + (" (модель за замовчуванням провайдера)"
+                     if _REPORT_META.get('model') in ('default', '', None) else "")
+                  + f", рука: {_ARMS or 'не зафіксована'}.",
                   ""]
     for did in sorted(REGISTRY):
         d = REGISTRY[did]
