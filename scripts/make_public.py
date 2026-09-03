@@ -69,6 +69,9 @@ ROOT_FILES = ["Dockerfile", "docker-compose.yml", "LICENSE",
 PUBLIC_DOCS = {
     "architecture-student.md": "architecture.md",
     "traces-student.md": "traces.md",
+    # The one document that names a defect on purpose: a worked run of the
+    # loop, so nobody is blocked at the start by not knowing where to begin.
+    "first-run-student.md": "first-run.md",
 }
 
 # Same idea for root files that differ between the two audiences.
@@ -135,7 +138,11 @@ FORBIDDEN_PHRASES = [
 # comment and a set of .md filenames — three places the suffix list did not
 # reach. A leak check that only looks where the last leak was is not a check.
 ID_PATTERN = re.compile(r"(?<![A-Za-z0-9])[Dd][0-9]{2}(?![0-9])")
-ID_ALLOWED = {"profiles/defects.yaml", "profiles/profiles.yaml"}
+# docs/first-run.md discloses one defect deliberately — the guide exists to
+# teach the tooling on an example whose answer is already known, and it says
+# so in its first paragraph.
+ID_ALLOWED = {"profiles/defects.yaml", "profiles/profiles.yaml",
+              "docs/first-run.md"}
 _BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".pdf", ".zip",
                     ".woff", ".woff2", ".ttf", ".db", ".sqlite", ".pyc"}
 
