@@ -346,9 +346,15 @@ def lab_L04(runs):
             clean_spans = [r for r in c.tool_results("search_knowledge_base")]
             assert clean_spans, "clean run did not search"
             assert clean_spans[0]["index"] == "kb_clean"
-            top = clean_spans[0]["fragments"][0]["text"]
-            assert "1.5%" in top and "Tier 1" in top, \
-                "clean fragment lost the figure/condition pairing"
+            # kb_clean keeps a figure attached to the condition it belongs
+            # to. Asserting that on the FIRST fragment tied this step to a
+            # query the model composes itself, and it failed once in a full
+            # run for that reason alone: a level-1 assertion on a
+            # probabilistic input, which is what L03 teaches not to write.
+            texts = [f["text"] for sp in clean_spans for f in sp["fragments"]]
+            paired = any("1.5%" in t and "Tier 1" in t for t in texts)
+            assert paired, ("no clean fragment paired a figure with its "
+                            + "tier; got " + str(len(texts)) + " fragments")
         finally:
             c.close()
         d = Ctx("lesson-04")
