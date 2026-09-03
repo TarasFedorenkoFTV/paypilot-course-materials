@@ -1,7 +1,7 @@
 {
   "fixed_on": "2026-09-02",
   "mutants": 12,
-  "elapsed": 13.0,
+  "elapsed": 18.6,
   "scores": {
     "manual": 8,
     "generated": 1

@@ -241,7 +241,43 @@ $ curl -o /dev/null -w "%{http_code}" localhost:8000/api/_test/traces/75bc5bd8..
 
 ---
 
-## 7. Чого ці докази НЕ покривають
+## 7. Еталонні розв'язки не постраждали від сьогоднішніх правок
+
+**Ризик, який я створив сам.** Сьогодні перейменовано рантайм-атрибути
+(`d14.retry_attempt` -> `retry.attempt`, `phantom#d03` -> `synthetic#kb`) і
+змінено кілька ендпоінтів. Еталони будувалися раніше й могли на це спиратися.
+
+**Перевірено:**
+
+```
+$ grep -rn "d14.retry_attempt|d14-retry|phantom#d03" solutions/
+(порожньо)
+
+$ cd solutions/tests_l11_reference && python run_mutants.py
+manual     mutation score 8/12
+generated  mutation score 1/12 = 8%
+
+$ cd solutions/evals && SET=l05_reference PROFILE=clean python runner.py
+5/5 passed   1 skipped (no judge)   elapsed 739.1s
+```
+
+Пропущений кейс — суддівський: `JUDGE_MODEL` не налаштований, і це правильно,
+суддя належить студентському контуру, не стенду.
+
+Запис прогону несе всі шість полів версії, як вимагає L12:
+`prompt_version base.v1`, `set_hash 9e80dbb88a93`, `profile clean`,
+`judge_model not-used`, `rubric_version rubric.v1`, `elapsed 739.1`.
+
+**Наскрізний прогін лишається дійсним:** після нього в `app/` змінювався лише
+`static/index.html`, а walkthrough ганяє цикл, рушії та інструменти, не
+інтерфейс.
+
+**Каталог відтворюється байт-у-байт** із `calibration-report.json` —
+перегенерація не дає діфа.
+
+---
+
+## 8. Чого ці докази НЕ покривають
 
 - **D27** (див. вище) — єдиний дефект, що не пройшов приймання.
 - **Вміст оверлеїв промпту** їде в студентську збірку й від локального
