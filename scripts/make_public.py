@@ -214,6 +214,11 @@ def build(dest: Path) -> None:
     if stray_env.exists():
         stray_env.unlink()
 
+    # data/ and traces/ are created by the running application, not copied
+    # here, so deleting them breaks whatever stand is currently using this
+    # tree — it did, once, under a live session. They are gitignored and so
+    # never travel in a clone; --check verifies that rather than their absence.
+
     log: list[str] = []
     for d in CODE_DIRS:
         _copy_tree(ROOT / d, dest, log)
@@ -304,9 +309,19 @@ def check(dest: Path) -> int:
         problems.append(".env is present in the student tree — it carries a live key")
 
     # The key must never be tracked either.
-    ignore = (dest / ".gitignore").read_text(encoding="utf-8").splitlines()
-    if ".env" not in [line.strip() for line in ignore]:
+    ignore = [line.strip() for line in
+              (dest / ".gitignore").read_text(encoding="utf-8").splitlines()]
+    if ".env" not in ignore:
         problems.append(".gitignore does not exclude .env")
+
+    # Runtime output is made of the thing being hidden — traces/traces.jsonl
+    # records run.active_defects on every request — but it is generated locally
+    # and must never be committed. Absence is the wrong test: the application
+    # recreates these while it runs.
+    for leftover in ("traces/", "data/"):
+        if not any(line.rstrip("/") == leftover.rstrip("/") or
+                   line.startswith(leftover) for line in ignore):
+            problems.append(f".gitignore does not exclude {leftover}")
 
     # No student-facing text may name a defect — in its content or its name.
     for p in sorted(dest.rglob("*")):
@@ -315,6 +330,8 @@ def check(dest: Path) -> int:
         rel = p.relative_to(dest).as_posix()
         if p.suffix.lower() in _BINARY_SUFFIXES:
             continue
+        if p.parts[0] in ("traces", "data"):
+            continue          # runtime output, gitignored, checked separately
         if ID_PATTERN.search(p.name):
             problems.append(f"{rel}: the filename itself names a defect")
         if rel in ID_ALLOWED or rel.endswith(".py"):
@@ -345,6 +362,33 @@ def check(dest: Path) -> int:
         elif (found := prose_ids(src)):
             problems.append(f"{rel}: names {', '.join(found)} in a comment "
                             f"or docstring")
+
+    # And the same rule for the destination's git history. Twice a hint was
+    # removed from the working tree and stayed reachable through
+    # `git show <old commit>:<file>` — the catalog first, then the overlays
+    # named after defect ids. The public repository therefore carries exactly
+    # one commit per release, and this proves it.
+    if (dest / ".git").exists():
+        import subprocess
+        try:
+            revs = subprocess.run(["git", "rev-list", "--all"], cwd=dest,
+                                  capture_output=True, text=True, timeout=60)
+            commits = [c for c in revs.stdout.split() if c]
+            if len(commits) > 1:
+                problems.append(f"git history has {len(commits)} commits; a "
+                                f"release tree must carry exactly one, or "
+                                f"anything ever removed stays reachable")
+            for c in commits:
+                names = subprocess.run(["git", "ls-tree", "-r", "--name-only", c],
+                                       cwd=dest, capture_output=True, text=True,
+                                       timeout=60).stdout
+                leaked = sorted({n for n in names.split()
+                                 if ID_PATTERN.search(Path(n).name)})
+                if leaked:
+                    problems.append(f"commit {c[:8]} still holds "
+                                    f"{', '.join(leaked[:4])}")
+        except (OSError, subprocess.SubprocessError):
+            problems.append("could not inspect the destination git history")
 
     reg = (dest / "profiles" / "defects.yaml").read_text(encoding="utf-8")
     if "title:" in reg or "mechanism:" in reg:
