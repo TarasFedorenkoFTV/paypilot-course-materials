@@ -73,8 +73,11 @@ _PROFILES = yaml.safe_load((ROOT / "profiles" / "profiles.yaml").read_text(
 
 _corridor_file = ROOT / "profiles" / "corridors.yaml"
 CORRIDORS = yaml.safe_load(_corridor_file.read_text(encoding="utf-8"))["corridors"]
-CORRIDORS_FROZEN_AT = yaml.safe_load(
-    _corridor_file.read_text(encoding="utf-8"))["frozen_at"]
+_corridor_doc = yaml.safe_load(_corridor_file.read_text(encoding="utf-8"))
+CORRIDORS_FROZEN_AT = _corridor_doc["frozen_at"]
+# Decided, measured exceptions. Still counted as failures; flagged apart
+# so that a run showing 23/24 is readable and a new failure stands out.
+KNOWN_EXCEPTIONS = _corridor_doc.get("known_exceptions") or {}
 
 
 def _resolved_model() -> str:
@@ -219,7 +222,12 @@ def main():
             print("!! aborted on " + aborted)
             break
         results.append(r)
-        flag = "OK" if r["accept"] else ("ISO!" if not r["isolation_ok"] else "OUT")
+        if r["accept"]:
+            flag = "OK"
+        elif r["defect"] in KNOWN_EXCEPTIONS:
+            flag = "KNOWN"          # declared exception, not a regression
+        else:
+            flag = "ISO!" if not r["isolation_ok"] else "OUT"
         print(f"{r['defect']:<7}{r['declared']:<15}{r['arm']:<22}{r['runs']:<6}"
               f"{r['fired_profile']:<7}{r['fired_clean']:<7}"
               f"{r['frequency_pct']:<8}{flag}")
@@ -227,7 +235,17 @@ def main():
     elapsed = round(time.time() - t0, 1)
     accepted = sum(r["accept"] for r in results)
     print("-" * 60)
+    unexpected = [r["defect"] for r in results
+                  if not r["accept"] and r["defect"] not in KNOWN_EXCEPTIONS]
+    known = [r["defect"] for r in results
+             if not r["accept"] and r["defect"] in KNOWN_EXCEPTIONS]
     print(f"accepted {accepted}/{len(results)}   elapsed {elapsed}s")
+    if known:
+        print(f"declared exceptions (not accepted, decided): {', '.join(known)}")
+    if unexpected:
+        print(f"!! UNEXPECTED failures: {', '.join(unexpected)}")
+    elif known:
+        print("no unexpected failures — everything else is inside its corridor")
 
     # A mock run must never touch the real acceptance evidence. Before this
     # guard, `LLM_PROVIDER=mock python scripts/calibrate.py` silently merged

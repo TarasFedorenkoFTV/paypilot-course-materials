@@ -47,3 +47,28 @@ corridors:
   D24: {low_pct: 45, high_pct: 95, baseline: "8/10"}
   D25: {low_pct: 55, high_pct: 100, baseline: "9/10"}
   D27: {low_pct: 65, high_pct: 100, baseline: "8/8"}
+
+# Declared exceptions: defects that do not meet the acceptance rule, where the
+# customer has decided to keep them as they are rather than change the rule or
+# tune the stand. Listing one here does NOT make it accepted — the report still
+# counts it as a failure. What it does is separate a decided, measured
+# exception from a regression, so a future run showing 23/24 is readable.
+known_exceptions:
+  D27:
+    decided_on: "2026-09-03"
+    clean_baseline: "1/30 runs (3.3%, Wilson 95%: 0.6-16.7%)"
+    profile_rate: "10/10"
+    reason: >
+      The defect is the ABSENCE of an escalation span, and the reference
+      profile does not guarantee one: the agent skipped a mandated escalation
+      once in thirty clean runs with no defect present. The acceptance rule
+      requires zero on clean, so it fails.
+      Three things were deliberately not done: the prompt was not tuned (the
+      rule already reads MUST ... without exception), no clean-side corridor
+      was declared after seeing the result, and it was not re-run until green.
+      The customer chose to keep it failing and use it as teaching material
+      instead — L09 is about measuring an instrument's own error before
+      trusting it, and this is that lesson in the stand itself.
+    how_to_demonstrate: >
+      As a difference in rates, never as a single run: five runs on clean
+      against five on the profile. One missing escalation proves nothing.

@@ -132,3 +132,33 @@ def test_catalog_documents_the_cancellation():
     section = catalog.split("## D20")[1].split("## D21")[0]
     assert "гасить d21" in section.lower(), \
         "the D20/D21 interaction is not in the catalog"
+
+
+def test_d27_exception_is_declared_not_silently_fixed():
+    """The customer decided on 2026-09-03 to keep D27 failing and teach with
+    it rather than change the acceptance rule or tune the prompt until the
+    number looked right. This test is what makes that decision durable: if
+    someone later declares a clean-side corridor for it, or drops the
+    exception without a decision, the suite says so.
+    """
+    import yaml
+    doc = yaml.safe_load(
+        (DOC.parent.parent / "profiles" / "corridors.yaml").read_text(encoding="utf-8"))
+    exceptions = doc.get("known_exceptions") or {}
+    assert "D27" in exceptions, \
+        "D27 is no longer a declared exception — was that a decision or a slip?"
+    entry = exceptions["D27"]
+    for field in ("decided_on", "clean_baseline", "reason", "how_to_demonstrate"):
+        assert entry.get(field), f"D27 exception is missing {field}"
+    # D27 keeps its profile-side corridor — declared before the run, and it
+    # passed it at 100%. What must never appear is an allowance for firing
+    # on clean: that would be a threshold invented to fit the observed 1/30.
+    assert doc["corridors"]["D27"]["low_pct"] >= 30, "profile corridor lost"
+    for field in ("clean_pct", "clean_low_pct", "clean_allowed", "clean_max_pct"):
+        assert field not in entry, f"D27 exception invents {field}"
+        assert field not in doc["corridors"]["D27"], f"corridor invents {field}"
+
+    guide = (DOC.parent / "lesson-guide.md").read_text(encoding="utf-8")
+    l09 = guide.split("## L09")[1].split("\n## ")[0]
+    assert "різницю частот" in l09, \
+        "L09 must tell the lecturer to show D27 as a rate difference"
