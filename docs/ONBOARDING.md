@@ -62,10 +62,10 @@ AI-агента» вироджується в «поміркуй, які був�
 git clone <репозиторій>
 cd paypilot-stand
 python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt   # Linux/macOS: .venv/bin/pip
-cp -n .env.example .env                         # і вписати ANTHROPIC_API_KEY
-python scripts/doctor.py                        # provider [OK] anthropic
-python -m uvicorn app.main:app --port 8000      # http://localhost:8000
+.venv/Scripts/pip install -r requirements.txt      # Linux/macOS: .venv/bin/pip
+cp -n .env.example .env                            # і вписати ANTHROPIC_API_KEY
+.venv/Scripts/python scripts/doctor.py             # provider [OK] anthropic
+.venv/Scripts/python -m uvicorn app.main:app --port 8000
 ```
 
 Або одним рухом через docker: `docker compose up --build -d` — тоді
@@ -73,6 +73,10 @@ python -m uvicorn app.main:app --port 8000      # http://localhost:8000
 
 Дві речі, на яких спотикаються:
 
+- **venv не активується сам.** Після `python -m venv .venv` короткий `python`
+  — це все ще системний інтерпретатор без залежностей, і `doctor.py` скаже
+  `[FAIL] No module named 'yaml'`. Звертайтеся шляхом `.venv/Scripts/python`
+  або активуйте venv.
 - **`make` на Windows зазвичай немає.** Цілі Makefile — це однорядкові команди
   вище, запускайте їх напряму. Де в документах написано `make doctor`, читайте
   `python scripts/doctor.py`.

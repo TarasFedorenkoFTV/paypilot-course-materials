@@ -8,9 +8,9 @@ AI-агент підтримки необанку **Verta** з контроль�
 
 ```bash
 cp -n .env.example .env                       # ключ провайдера (або лишіть mock)
-python scripts/doctor.py                      # діагностика оточення
+.venv/Scripts/python scripts/doctor.py        # діагностика оточення
 docker compose up --build -d                  # або локально, без docker:
-python -m uvicorn app.main:app --port 8000
+.venv/Scripts/python -m uvicorn app.main:app --port 8000
 ```
 
 Чат відкривається на **http://localhost:8000** — там же перемикач профілів,

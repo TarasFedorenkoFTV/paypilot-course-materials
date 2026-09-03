@@ -281,6 +281,32 @@ def build(dest: Path) -> None:
         print(line)
     print(f"built student tree -> {dest}")
 
+    # Rebuilding is not publishing. The tree was rebuilt many times while the
+    # published repository quietly stayed a day behind — a student cloning it
+    # would have got the stand from before a day of fixes. Say so.
+    if (dest / ".git").exists():
+        import subprocess
+        try:
+            # --ignore-cr-at-eol, because the build writes LF and git checks
+            # out CRLF on Windows: without it every rebuild after a checkout
+            # looks dirty, and a warning that always fires is one people learn
+            # to ignore.
+            changed = subprocess.run(
+                ["git", "diff", "--name-only", "--ignore-cr-at-eol"],
+                cwd=dest, capture_output=True, text=True, timeout=60).stdout
+            untracked = subprocess.run(
+                ["git", "ls-files", "--others", "--exclude-standard"],
+                cwd=dest, capture_output=True, text=True, timeout=60).stdout
+            files = [x for x in (changed + untracked).splitlines() if x.strip()]
+            if files:
+                print(f"!! {len(files)} file(s) differ from the published "
+                      f"release: {', '.join(files[:4])}"
+                      + (" …" if len(files) > 4 else ""))
+                print("   Rebuilding does not publish — commit and push "
+                      f"{dest}.")
+        except (OSError, subprocess.SubprocessError):
+            pass
+
 
 def check(dest: Path) -> int:
     problems = []

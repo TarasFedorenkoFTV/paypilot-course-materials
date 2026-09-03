@@ -14,11 +14,18 @@ AI-агент підтримки необанку **Verta**: перевіряє 
 
 ```bash
 python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt   # Linux/macOS: .venv/bin/pip
+.venv/Scripts/pip install -r requirements.txt      # Linux/macOS: .venv/bin/pip
 cp -n .env.example .env                            # впишіть ключ провайдера
-python scripts/doctor.py                        # діагностика
-python -m uvicorn app.main:app --port 8000      # стенд
+.venv/Scripts/python scripts/doctor.py             # діагностика
+.venv/Scripts/python -m uvicorn app.main:app --port 8000
 ```
+
+**Чому `.venv/Scripts/python`, а не просто `python`.** Створення venv не
+робить його активним: наступний `python` у тій самій консолі — це системний
+інтерпретатор, у якому залежностей немає, і ви отримаєте
+`[FAIL] No module named 'yaml'`. Або звертайтеся до venv шляхом, як вище, або
+активуйте його спершу (`.venv\Scripts\activate` у PowerShell,
+`source .venv/bin/activate` у Linux/macOS) — тоді працює короткий `python`.
 
 Або через docker: `docker compose up --build -d`.
 
