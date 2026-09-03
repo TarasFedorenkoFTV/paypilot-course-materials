@@ -140,9 +140,7 @@ const $ = function(id){ return document.getElementById(id); };
 let sessionId = null, lastTrace = null;
 let extraDefects = new Set(), profileDefects = new Set();
 
-const ALL_IDS = ['D01','D02','D03','D04','D05','D06','D07','D08','D09','D10','D11',
-  'D12','D13','D14','D15','D16','D17','D18','D19','D20','D21','D22','D23','D24',
-  'D25','D26','D27'];
+let ALL_IDS = [];   // filled from /api/_test/defects
 
 async function api(path, opts){
   const r = await fetch(path, opts);
@@ -317,6 +315,7 @@ async function refreshState(){
 function renderDefects(d){
   const box = $('defects');
   box.innerHTML = '';
+  ALL_IDS = d.all_defects || ALL_IDS;
   ALL_IDS.forEach(function(id){
     const s = document.createElement('span');
     const inProfile = profileDefects.has(id), on = extraDefects.has(id);

@@ -11,7 +11,7 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       # loop knobs: without these the container ignored .env and the
-      # memory lesson (D06/D07) was unreachable inside compose
+      # memory lesson was unreachable inside compose
       - MAX_AGENT_STEPS=${MAX_AGENT_STEPS:-12}
       - SUMMARIZE_AFTER_STEPS=${SUMMARIZE_AFTER_STEPS:-8}
       - KB_INDEX=${KB_INDEX:-}

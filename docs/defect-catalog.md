@@ -136,7 +136,7 @@
 - **Видно в:** trace (repeated spans)
 - **Сценарій відтворення:** "Show me the transactions for account ACC-1004."
 
-> ⚠️ **Застереження для лектора.** Атрибут повтору стоїть на спані `llm.call` як `d14.retry_attempt`, а не на `tool.*`. Кожен повтор — повний оберт «модель → інструмент», тому він коштує токенів (заміряно ×5.03).
+> ⚠️ **Застереження для лектора.** Атрибут повтору стоїть на спані `llm.call` як `retry.attempt`, а не на `tool.*`. Кожен повтор — повний оберт «модель → інструмент», тому він коштує токенів (заміряно ×5.03).
 
 ## D15 — History re-read inflation
 - **Механізм:** Full prior tool results are re-appended to context on every step; input tokens grow with each step.

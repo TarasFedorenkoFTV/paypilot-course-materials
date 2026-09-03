@@ -180,8 +180,8 @@ def _d14_retry_loop(trace: RequestTrace, provider, system: str, state: dict,
     State is untouched throughout: the retries only ever repeat a read.
     """
     for attempt in range(1, _EMPTY_RETRY_LIMIT):
-        with trace.span("llm.call", **{"agent.loop_step": f"d14-retry-{attempt}",
-                                       "d14.retry_attempt": attempt}) as s:
+        with trace.span("llm.call", **{"agent.loop_step": f"retry-{attempt}",
+                                       "retry.attempt": attempt}) as s:
             probe = provider.complete(system, _messages_for_model(state),
                                       tools.specs())
             s.attributes.update({

@@ -61,3 +61,34 @@ def test_customer_tiers_match_seed():
 
 def test_seed_version_documented():
     assert seed.SEED_VERSION in DOC.read_text(encoding="utf-8")
+
+
+def test_documented_test_counts_are_current():
+    """The trust table in ONBOARDING.md quotes how many tests exist. It went
+    stale twice — once in the very commit that added the tests it undercounted
+    — so the number is now derived and compared instead of remembered."""
+    import ast as _ast
+
+    def count(root: Path) -> int:
+        total = 0
+        for f in root.rglob("*.py"):
+            try:
+                tree = _ast.parse(f.read_text(encoding="utf-8"))
+            except (SyntaxError, UnicodeDecodeError):
+                continue
+            total += sum(1 for n in _ast.walk(tree)
+                         if isinstance(n, _ast.FunctionDef)
+                         and n.name.startswith("test_"))
+        return total
+
+    root = DOC.parent.parent
+    stand = count(root / "tests")
+    everything = stand + count(root / "solutions")
+
+    onboarding = (root / "docs" / "ONBOARDING.md").read_text(encoding="utf-8")
+    row = next(line for line in onboarding.splitlines()
+               if "стенд не ламається" in line)
+    numbers = [int(n) for n in re.findall(r"\*\*(\d+)\*\*", row)]
+    assert stand in numbers, f"ONBOARDING claims {numbers}, tests/ has {stand}"
+    assert everything in numbers, \
+        f"ONBOARDING claims {numbers}, the whole repo has {everything}"

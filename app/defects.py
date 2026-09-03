@@ -66,6 +66,7 @@ def describe() -> dict:
     return {
         "profile": current_profile(),
         "known_profiles": sorted(PROFILES),
+        "all_defects": sorted(REGISTRY),
         "profile_defects": sorted(_profile_defects()),
         "extra_defects": sorted(
             _runtime_extra if _runtime_extra is not None else _parse_list(config.DEFECTS_ENV)),

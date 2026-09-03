@@ -10,6 +10,9 @@ Overlays compose: they are applied in defect-id order and touch disjoint
 parts of the base by construction (combinability requirement, ТЗ §5.8)."""
 import re
 
+import hashlib
+from pathlib import Path
+
 from app import config, defects
 
 BASE_FILE = config.PROMPTS_DIR / "base.v1.md"
@@ -59,13 +62,31 @@ def _apply(base: str, meta: dict, body: str, overlay_name: str) -> str:
     raise ValueError(f"{overlay_name}: unknown overlay mode {mode!r}")
 
 
+def overlay_slug(defect_id: str) -> str:
+    """Stable opaque name for an overlay file.
+
+    The student build renames the overlays to these, because a directory of
+    files called D01.md ... D27.md is a register index: it lets anyone grep
+    straight to the answer for a given lesson without running anything. The
+    file content still has to ship — the stand applies it at runtime, and
+    GET /api/_test/prompt shows the assembled prompt anyway when the profile
+    is on, by design. What goes away is the shortcut.
+    """
+    return hashlib.sha1(f"paypilot-overlay-{defect_id}".encode()).hexdigest()[:12]
+
+
+def _overlay_file(defect_id: str) -> Path | None:
+    """Readable name first, opaque name second: one code path for both trees."""
+    for name in (f"{defect_id}.md", f"{overlay_slug(defect_id)}.md"):
+        candidate = OVERLAYS_DIR / name
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def active_overlays() -> list[str]:
     """Prompt-layer defects that are active AND have an overlay file."""
-    result = []
-    for d in sorted(defects.active()):
-        if (OVERLAYS_DIR / f"{d}.md").exists():
-            result.append(d)
-    return result
+    return [d for d in sorted(defects.active()) if _overlay_file(d)]
 
 
 def build() -> tuple[str, str]:
@@ -74,7 +95,7 @@ def build() -> tuple[str, str]:
     applied = []
     for d in active_overlays():
         meta, body = _parse_overlay(
-            (OVERLAYS_DIR / f"{d}.md").read_text(encoding="utf-8"))
+            _overlay_file(d).read_text(encoding="utf-8"))
         base = _apply(base, meta, body, d)
         applied.append(d)
     version = "base.v1" + ("" if not applied else "+" + "+".join(applied))

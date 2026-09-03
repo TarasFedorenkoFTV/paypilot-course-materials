@@ -37,6 +37,7 @@ Usage:
   python scripts/make_public.py --dest D:/paypilot-public --check
 """
 import argparse
+import json
 import re
 import sys as _sys
 import shutil
@@ -45,6 +46,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 _sys.path.insert(0, str(ROOT))
+from app.agent.prompt import overlay_slug  # noqa: E402
 from scripts._scrub import blank_prose, prose_ids, prose_text, scrub  # noqa: E402
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -121,9 +123,15 @@ FORBIDDEN_PHRASES = [
 # whole answer table that none of the four phrases matched. The durable rule is
 # structural — no prose in the student tree names a defect. Ids may appear only
 # where the stand needs them as bare data.
-ID_PATTERN = re.compile(r"(?<![A-Za-z0-9])D[0-9]{2}(?![0-9])")
+# Case-insensitive, because the register also travels in lowercase runtime
+# labels ("d14-retry-1", "phantom#d03"), and scoped to every text file rather
+# than a suffix list. Round 3 found the answer key in a .json fixture, a .yml
+# comment and a set of .md filenames — three places the suffix list did not
+# reach. A leak check that only looks where the last leak was is not a check.
+ID_PATTERN = re.compile(r"(?<![A-Za-z0-9])[Dd][0-9]{2}(?![0-9])")
 ID_ALLOWED = {"profiles/defects.yaml", "profiles/profiles.yaml"}
-ID_CHECKED_SUFFIXES = (".md", "")     # docs, README, Makefile, LICENSE
+_BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".pdf", ".zip",
+                    ".woff", ".woff2", ".ttf", ".db", ".sqlite", ".pyc"}
 
 
 def _denied(rel: str) -> bool:
@@ -218,6 +226,30 @@ def build(dest: Path) -> None:
     for name in ROOT_FILES:
         shutil.copy2(ROOT / name, dest / name)
 
+    # Overlay files are renamed to opaque slugs. The content must ship — the
+    # stand applies it at runtime — but a directory listing of D01.md..D27.md
+    # is an index into the answer key, and grep gets there without running
+    # anything. prompt.py resolves either name, so nothing diverges.
+    overlays = dest / "prompts" / "overlays"
+    for f in sorted(overlays.glob("*.md")):
+        did = f.stem
+        if re.fullmatch(r"D[0-9]{2}", did):
+            f.rename(overlays / f"{overlay_slug(did)}.md")
+            log.append(f"  rename prompts/overlays/{f.name}")
+
+    # The judge fixture is lesson material students use, but its header named
+    # the defect and stated the lesson's conclusion verbatim.
+    fx_old = dest / "app" / "fixtures" / "d18_judge_pairs.json"
+    if fx_old.exists():
+        data = json.loads(fx_old.read_text(encoding="utf-8"))
+        for key in ("defect", "description"):
+            data.pop(key, None)
+        fx_new = fx_old.with_name("judge_pairs.json")
+        fx_new.write_text(json.dumps(data, indent=2, ensure_ascii=False)
+                          + chr(10), encoding="utf-8")
+        fx_old.unlink()
+        log.append("  strip  app/fixtures/judge_pairs.json")
+
     if not (dest / ".github" / "workflows" / "stand-ci.yml").exists():
         raise SystemExit("CI workflow did not make it into the student tree")
 
@@ -276,13 +308,17 @@ def check(dest: Path) -> int:
     if ".env" not in [line.strip() for line in ignore]:
         problems.append(".gitignore does not exclude .env")
 
-    # No student-facing prose may name a defect.
+    # No student-facing text may name a defect — in its content or its name.
     for p in sorted(dest.rglob("*")):
         if not p.is_file() or ".git" in p.parts or ".venv" in p.parts:
             continue
         rel = p.relative_to(dest).as_posix()
-        if rel in ID_ALLOWED or p.suffix.lower() not in ID_CHECKED_SUFFIXES:
+        if p.suffix.lower() in _BINARY_SUFFIXES:
             continue
+        if ID_PATTERN.search(p.name):
+            problems.append(f"{rel}: the filename itself names a defect")
+        if rel in ID_ALLOWED or rel.endswith(".py"):
+            continue          # .py is handled by the prose rules above
         try:
             found = sorted(set(ID_PATTERN.findall(p.read_text(encoding="utf-8"))))
         except (UnicodeDecodeError, OSError):

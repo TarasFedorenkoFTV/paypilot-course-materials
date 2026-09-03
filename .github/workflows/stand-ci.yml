@@ -53,5 +53,8 @@ jobs:
             curl -fsS http://localhost:8000/health && break || sleep 2
           done
           curl -fsS http://localhost:8000/health | grep -q '"profile":"lesson-01"'
-          curl -fsS http://localhost:8000/api/_test/defects | grep -q 'D01'
+          # assert the profile activated something, without naming an id here:
+          # this workflow ships to students
+          curl -fsS http://localhost:8000/api/_test/defects             | grep -qE '"active": *\[ *"[A-Z][0-9]+"'
+
           docker rm -f stand
