@@ -162,3 +162,26 @@ def test_d27_exception_is_declared_not_silently_fixed():
     l09 = guide.split("## L09")[1].split("\n## ")[0]
     assert "різницю частот" in l09, \
         "L09 must tell the lecturer to show D27 as a rate difference"
+
+
+def test_sample_size_deviation_stays_visible():
+    """ТЗ 10.2 asks for 20 runs on probabilistic defects; the report has 10.
+    That is a live deviation, not a closed item, and it must not quietly
+    disappear from the acceptance sheet the day someone reformats it. When a
+    run at 20 is made, this test is what tells you to update the text."""
+    import json
+    report = json.loads((DOC.parent / "calibration-report.json")
+                        .read_text(encoding="utf-8"))
+    prob = [r for r in report["results"] if r["declared"] == "probabilistic"]
+    assert prob, "no probabilistic defects in the report"
+    runs = {r["runs"] for r in prob}
+    sheet = (DOC.parent / "acceptance-criteria.md").read_text(encoding="utf-8")
+
+    if runs == {20}:
+        assert "вибірка 10 замість 20" not in sheet, (
+            "the report now has 20 runs — remove the deviation from "
+            "acceptance-criteria.md")
+    else:
+        assert "вибірка 10 замість 20" in sheet, (
+            f"probabilistic defects measured on {sorted(runs)} runs while ТЗ "
+            f"10.2 asks for 20, and the sheet no longer says so")
