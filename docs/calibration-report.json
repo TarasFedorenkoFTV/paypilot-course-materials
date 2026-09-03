@@ -1,19 +1,47 @@
 {
   "provider": "anthropic",
-  "model": "default",
-  "nprob": 10,
-  "ndet": 5,
-  "elapsed_s": 182.0,
+  "model": "claude-haiku-4-5",
+  "corridors_frozen_at": "2026-09-02",
+  "this_run": {
+    "run_id": "20260903T094131Z",
+    "nprob": 10,
+    "ndet": 5,
+    "elapsed_s": 2580.5,
+    "defects_measured": 24,
+    "aborted": null
+  },
+  "provenance": {
+    "single_pass": true,
+    "defects_in_report": 24,
+    "measured_in_this_run": 24,
+    "carried_over_from_earlier_runs": 0,
+    "run_ids": [
+      "20260903T094131Z"
+    ],
+    "arms_used": [
+      "profile"
+    ],
+    "note": "Every row carries its own run_id, arm and measured_at. Rows not measured in this run are carried over and are only as current as their own timestamp."
+  },
   "results": [
     {
       "defect": "D01",
       "declared": "probabilistic",
       "runs": 10,
-      "fired_profile": 7,
+      "fired_profile": 4,
       "fired_clean": 0,
-      "frequency_pct": 70.0,
+      "frequency_pct": 40.0,
+      "arm": "profile:lesson-01",
+      "profile": "lesson-01",
+      "corridor_pct": [
+        35,
+        90
+      ],
+      "criterion": "corridor 35-90%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T09:43:20Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D03",
@@ -22,8 +50,17 @@
       "fired_profile": 10,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-01",
+      "profile": "lesson-01",
+      "corridor_pct": [
+        70,
+        100
+      ],
+      "criterion": "corridor 70-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T09:45:10Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D04",
@@ -32,8 +69,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-02",
+      "profile": "lesson-02",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T09:45:46Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D05",
@@ -42,18 +85,36 @@
       "fired_profile": 10,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-02",
+      "profile": "lesson-02",
+      "corridor_pct": [
+        70,
+        100
+      ],
+      "criterion": "corridor 70-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T09:46:29Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D06",
       "declared": "probabilistic",
       "runs": 10,
-      "fired_profile": 10,
+      "fired_profile": 8,
       "fired_clean": 0,
-      "frequency_pct": 100.0,
+      "frequency_pct": 80.0,
+      "arm": "profile:lesson-05",
+      "profile": "lesson-05",
+      "corridor_pct": [
+        70,
+        100
+      ],
+      "criterion": "corridor 70-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T09:55:04Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D07",
@@ -62,18 +123,36 @@
       "fired_profile": 10,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-05",
+      "profile": "lesson-05",
+      "corridor_pct": [
+        70,
+        100
+      ],
+      "criterion": "corridor 70-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:01:46Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D08",
       "declared": "probabilistic",
       "runs": 10,
-      "fired_profile": 9,
+      "fired_profile": 10,
       "fired_clean": 0,
-      "frequency_pct": 90.0,
+      "frequency_pct": 100.0,
+      "arm": "profile:lesson-06",
+      "profile": "lesson-06",
+      "corridor_pct": [
+        55,
+        100
+      ],
+      "criterion": "corridor 55-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:11:32Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D10",
@@ -82,8 +161,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-06",
+      "profile": "lesson-06",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:19:26Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D11",
@@ -92,8 +177,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-07",
+      "profile": "lesson-07",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:20:24Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D12",
@@ -102,18 +193,33 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-07",
+      "profile": "lesson-07",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:02:49Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D13",
       "declared": "probabilistic",
-      "runs": 8,
-      "fired_profile": 8,
+      "runs": 10,
+      "fired_profile": 10,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-07",
+      "profile": "lesson-07",
+      "corridor_pct": [
+        65,
+        100
+      ],
+      "criterion": "corridor 65-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:04:28Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D14",
@@ -122,8 +228,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-08",
+      "profile": "lesson-08",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:15:42Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D15",
@@ -132,8 +244,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-08",
+      "profile": "lesson-08",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:17:20Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D16",
@@ -142,8 +260,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-04",
+      "profile": "lesson-04",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:18:05Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D17",
@@ -152,8 +276,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-04",
+      "profile": "lesson-04",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:18:56Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D19",
@@ -162,8 +292,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-03",
+      "profile": "lesson-03",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:07:44Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D20",
@@ -172,8 +308,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-03",
+      "profile": "lesson-03",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:08:32Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D21",
@@ -182,8 +324,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-03",
+      "profile": "lesson-03",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:21:17Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D22",
@@ -192,8 +340,14 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-03",
+      "profile": "lesson-03",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:09:06Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D23",
@@ -202,28 +356,55 @@
       "fired_profile": 10,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-06",
+      "profile": "lesson-06",
+      "corridor_pct": [
+        70,
+        100
+      ],
+      "criterion": "corridor 70-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:24:32Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D24",
       "declared": "probabilistic",
       "runs": 10,
-      "fired_profile": 8,
+      "fired_profile": 9,
       "fired_clean": 0,
-      "frequency_pct": 80.0,
+      "frequency_pct": 90.0,
+      "arm": "profile:lesson-06",
+      "profile": "lesson-06",
+      "corridor_pct": [
+        45,
+        95
+      ],
+      "criterion": "corridor 45-95%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:14:11Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D25",
       "declared": "probabilistic",
       "runs": 10,
-      "fired_profile": 9,
+      "fired_profile": 10,
       "fired_clean": 0,
-      "frequency_pct": 90.0,
+      "frequency_pct": 100.0,
+      "arm": "profile:lesson-02",
+      "profile": "lesson-02",
+      "corridor_pct": [
+        55,
+        100
+      ],
+      "criterion": "corridor 55-100%",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T09:48:30Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D26",
@@ -232,18 +413,33 @@
       "fired_profile": 5,
       "fired_clean": 0,
       "frequency_pct": 100.0,
+      "arm": "profile:lesson-03",
+      "profile": "lesson-03",
+      "corridor_pct": null,
+      "criterion": "N/N on arm, 0/N on clean",
       "isolation_ok": true,
-      "accept": true
+      "accept": true,
+      "measured_at": "2026-09-03T10:09:59Z",
+      "run_id": "20260903T094131Z"
     },
     {
       "defect": "D27",
       "declared": "probabilistic",
-      "runs": 8,
-      "fired_profile": 8,
-      "fired_clean": 0,
+      "runs": 10,
+      "fired_profile": 10,
+      "fired_clean": 1,
       "frequency_pct": 100.0,
-      "isolation_ok": true,
-      "accept": true
+      "arm": "profile:lesson-09",
+      "profile": "lesson-09",
+      "corridor_pct": [
+        65,
+        100
+      ],
+      "criterion": "corridor 65-100%",
+      "isolation_ok": false,
+      "accept": false,
+      "measured_at": "2026-09-03T10:07:02Z",
+      "run_id": "20260903T094131Z"
     }
   ]
 }
