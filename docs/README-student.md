@@ -15,7 +15,7 @@ AI-агент підтримки необанку **Verta**: перевіряє 
 ```bash
 python -m venv .venv
 .venv/Scripts/pip install -r requirements.txt   # Linux/macOS: .venv/bin/pip
-cp .env.example .env                            # впишіть ключ провайдера
+cp -n .env.example .env                            # впишіть ключ провайдера
 python scripts/doctor.py                        # діагностика
 python -m uvicorn app.main:app --port 8000      # стенд
 ```
@@ -85,7 +85,7 @@ curl -X POST localhost:8000/chat \
 |---|---|
 | `GET /api/_test/traces/<id>` | дерево спанів: аргументи й результати інструментів, токени, пошукові фрагменти |
 | `GET /api/_test/state/{table}` | що реально записано: `disputes`, `statements_sent`, `escalations`, `accounts`, `transactions`, `customers` |
-| `GET /api/_test/seed` | еталонні дані: клієнти, рахунки, транзакції |
+| `GET /api/_test/seed` | версія seed, клієнти, рахунки і **кількість** транзакцій; самі транзакції — `GET /api/_test/state/transactions` |
 | `GET /api/_test/prompt` | системний промпт, з яким зараз працює агент |
 | `GET /api/_test/specs` | документи вимог (US-01) |
 | `GET /api/_test/tools` | схеми інструментів: назви, описи, параметри |

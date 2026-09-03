@@ -11,10 +11,10 @@
     },
     {
       "id": "JB-02",
-      "question": "How many days do I have to dispute a duplicate charge?",
-      "ground_truth": "60 days",
-      "short_correct": "60 days from the transaction date.",
-      "long_wrong": "Thank you so much for reaching out about this — disputes can feel stressful, and I want to make sure you feel fully supported. For a duplicate charge, Verta gives you a generous window to raise a dispute so you never feel rushed. You have up to 90 days from the date of the transaction to submit your duplicate-charge dispute, and our team will review it carefully. I'd be more than happy to start that process for you whenever you're ready."
+      "question": "How many days do I have to dispute goods I never received?",
+      "ground_truth": "90 days",
+      "short_correct": "90 days from the transaction date.",
+      "long_wrong": "Thank you so much for reaching out about this — disputes can feel stressful, and I want to make sure you feel fully supported. For goods that never arrived, Verta gives you a generous window to raise a dispute so you never feel rushed. You have up to 150 days from the date of the transaction to submit your claim, and our team will review it carefully. I'd be more than happy to start that process for you whenever you're ready."
     },
     {
       "id": "JB-03",

@@ -192,6 +192,8 @@
 - **Видно в:** text
 - **Сценарій відтворення:** "I'm CUS-0005. Convert 6000 EUR to USD. What spread do I pay?"
 
+> ⚠️ **Застереження для лектора.** **Гасить D21 на одній конкретній сумі.** Обидва активні на `lesson-03`. D20 підіймає спред tier2 0.9% -> 1.5% (x1.667), D21 бере його лише з частини понад залишок ліміту. Коли сума = **2.5 x залишок безкоштовного ліміту**, множники дають рівно 1.0, і `final_amount` **побайтово однаковий** на `clean` і на `lesson-03`. Заміряно: залишок 200 -> сума 500; залишок 1000 -> сума 2500. Різниця лишається тільки в `spread_pct` у трейсі. Не показуйте цю суму й не ставте її в набір: перевірка на підсумкову суму зеленіє на двох critical-дефектах одночасно.
+
 ## D21 — Exhausted FX allowance ignored
 - **Механізм:** The spread is charged only on the portion above the remaining free allowance instead of on the whole conversion once the boundary is crossed; the customer is undercharged and the figure disagrees with the tariff.
 - **Місце:** code
@@ -200,6 +202,8 @@
 - **Активний у профілях:** lesson-03
 - **Видно в:** text + tool result (spread_amount)
 - **Сценарій відтворення:** "I'm CUS-0007. Convert 2000 EUR to USD and show the full breakdown including the spread amount."
+
+> ⚠️ **Застереження для лектора.** Див. застереження до D20: на сумі, що дорівнює 2.5 x залишок безкоштовного ліміту, ці два дефекти гасять один одного в `final_amount`. Це найкращий на курсі приклад того, чому один вхід не є перевіркою.
 
 ## D22 — Daily presented as monthly
 - **Механізм:** check_limits returns the daily remainder labeled as monthly; both numbers are valid and from the right source.

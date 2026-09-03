@@ -92,3 +92,43 @@ def test_documented_test_counts_are_current():
     assert stand in numbers, f"ONBOARDING claims {numbers}, tests/ has {stand}"
     assert everything in numbers, \
         f"ONBOARDING claims {numbers}, the whole repo has {everything}"
+
+
+def test_documented_demo_amount_is_not_a_cancellation_point():
+    """D20 and D21 both live on lesson-03 and cancel exactly when the
+    conversion equals 2.5x the remaining free allowance: D20 multiplies the
+    spread by 1.667, D21 applies it to 0.4 of the amount, and the product is
+    1.0. final_amount is then identical on clean and on the defect profile,
+    so a case asserting the total goes green on two critical defects at once.
+
+    A student found this on 500 EUR. The lesson guide must never suggest such
+    an amount, and this test is what stops one drifting in.
+    """
+    from app.engines import fx, policy
+
+    def diverges(amount: float, used: float) -> bool:
+        clean = fx.quote(amount, "EUR", "USD", "tier2", allowance_used_eur=used)
+        broken = fx.quote(amount, "EUR", "USD", "tier2", allowance_used_eur=used,
+                          spread_pct_override=policy.FX_SPREAD_PCT["tier1"],
+                          partial_allowance=True)
+        return abs(broken.final_amount - clean.final_amount) > 0.01
+
+    ratio = 1 - policy.FX_SPREAD_PCT["tier2"] / policy.FX_SPREAD_PCT["tier1"]
+    remaining = policy.FX_FREE_MONTHLY_ALLOWANCE_EUR["tier2"]
+    # the caveat's arithmetic still holds
+    assert not diverges(remaining / ratio, 0.0), \
+        "the cancellation point moved; the D20 caveat needs remeasuring"
+
+    guide = (DOC.parent / "lesson-guide.md").read_text(encoding="utf-8")
+    l03 = guide.split("## L03")[1].split("\n## ")[0]
+    for amount in re.findall(r"Convert (\d+) EUR", l03):
+        assert diverges(float(amount), 0.0), (
+            f"L03 suggests converting {amount} EUR, which is a D20/D21 "
+            f"cancellation point: final_amount is identical on both profiles")
+
+
+def test_catalog_documents_the_cancellation():
+    catalog = (DOC.parent / "defect-catalog.md").read_text(encoding="utf-8")
+    section = catalog.split("## D20")[1].split("## D21")[0]
+    assert "гасить d21" in section.lower(), \
+        "the D20/D21 interaction is not in the catalog"

@@ -7,7 +7,7 @@ AI-агент підтримки необанку **Verta** з контроль�
 ## Швидкий старт
 
 ```bash
-cp .env.example .env          # заповніть ключ провайдера (або лишіть mock)
+cp -n .env.example .env          # заповніть ключ провайдера (або лишіть mock)
 python scripts/doctor.py      # діагностика оточення
 docker compose up --build -d  # або: make dev (локально без docker)
 ```
@@ -75,7 +75,7 @@ curl -X POST localhost:8000/chat   -H 'content-type: application/json'   -d '{"s
 | `GET /api/_test/defects` | активні дефекти й профіль |
 | `PUT /api/_test/defects` | поштучне вмикання без рестарту |
 | `GET /api/_test/state/{table}` | вміст таблиць: `accounts`, `transactions`, `disputes`, `statements_sent`, `escalations`, `customers` |
-| `GET /api/_test/seed` | перелік seed-даних |
+| `GET /api/_test/seed` | версія seed, клієнти, рахунки і **кількість** транзакцій; самі транзакції — `GET /api/_test/state/transactions` |
 | `GET/PUT /api/_test/clock` | читання/встановлення «поточного» часу |
 | `POST /api/_test/reset` | скидання стану до seed |
 | `GET /api/_test/prompt` | зібраний system prompt + активні overlay |

@@ -67,10 +67,20 @@ def overlay_slug(defect_id: str) -> str:
 
     The student build renames the overlays to these, because a directory of
     files called D01.md ... D27.md is a register index: it lets anyone grep
-    straight to the answer for a given lesson without running anything. The
-    file content still has to ship — the stand applies it at runtime, and
-    GET /api/_test/prompt shows the assembled prompt anyway when the profile
-    is on, by design. What goes away is the shortcut.
+    straight to the answer for a given lesson without running anything.
+
+    What this is NOT: protection. The salt is right here, in the file that
+    ships with the build, so the mapping is three lines of Python away — a
+    student demonstrated exactly that. The runtime has to resolve an id to a
+    file, so the mapping is necessarily present in the tree in some form; no
+    arrangement of names changes that. And the content ships regardless,
+    because the stand applies it and GET /api/_test/prompt shows the assembled
+    prompt when the profile is on, which is by design: L01 audits the prompt
+    as an artefact.
+
+    So this removes the accidental find, not the deliberate one. It is worth
+    the six lines it costs and nothing more. Only serving the stand centrally,
+    with students getting a URL and never the source, closes the class.
     """
     return hashlib.sha1(f"paypilot-overlay-{defect_id}".encode()).hexdigest()[:12]
 
