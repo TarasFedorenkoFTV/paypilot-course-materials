@@ -7,14 +7,19 @@ AI-агент підтримки необанку **Verta** з контроль�
 ## Швидкий старт
 
 ```bash
-cp -n .env.example .env          # заповніть ключ провайдера (або лишіть mock)
-python scripts/doctor.py      # діагностика оточення
-docker compose up --build -d  # або: make dev (локально без docker)
+cp -n .env.example .env                       # ключ провайдера (або лишіть mock)
+python scripts/doctor.py                      # діагностика оточення
+docker compose up --build -d                  # або локально, без docker:
+python -m uvicorn app.main:app --port 8000
 ```
 
 Чат відкривається на **http://localhost:8000** — там же перемикач профілів,
 точкове вмикання дефектів, керування часом і дерево спанів останнього ходу.
-Трейси також у Phoenix на **http://localhost:6006**.
+
+Phoenix (UI трасування) на **http://localhost:6006** піднімається **лише
+через docker compose**. При запуску через uvicorn цей порт мертвий, і `doctor`
+дасть `WARN` — це нормально: трейси однаково доступні через
+`GET /api/_test/traces/...` і файл `traces/traces.jsonl`.
 
 ## Поверхні (ТЗ §3.2)
 
@@ -118,7 +123,7 @@ D02 (документний дефект), D09 (покрито юніт-тест
 make calibrate                     # усі дефекти: профіль проти clean
 python scripts/calibrate.py --only D19   # один дефект
 make catalog                       # оновити каталог із заміряного звіту
-make smoke                         # перевірити всі поверхні без ключа
+python scripts/ci_smoke.py         # перевірити всі поверхні без ключа
 ```
 
 ## Документація
@@ -150,7 +155,7 @@ make smoke                         # перевірити всі поверхн�
 
 ```bash
 make test         # юніт-тести рушіїв, дефектів і API (без ключа)
-make smoke        # усі поверхні стенду відповідають (без ключа)
+python scripts/ci_smoke.py   # усі поверхні стенду відповідають (без ключа)
 make walkthrough  # кроки лабораторних усіх 14 занять (потрібен ключ)
 ```
 

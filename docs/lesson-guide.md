@@ -198,9 +198,12 @@ DEFECTS=D19 make eval     # червоний білд для гейта на L13
 ## Перевірка перед заняттям
 
 ```bash
-make doctor    # оточення, ключ, артефакти
-make smoke     # всі поверхні стенду відповідають
-make reset     # стан до seed після незворотних дій
+python scripts/doctor.py                                  # оточення, ключ, артефакти
+python scripts/ci_smoke.py                                # всі поверхні відповідають
+curl -X POST http://localhost:8000/api/_test/reset        # стан до seed
 ```
+
+(Ті самі три дії є цілями Makefile — `make doctor / smoke / reset`, — але на
+Windows `make` зазвичай не встановлений, тому вище прямі команди.)
 
 Заміряні частоти спрацювання кожного дефекту — `docs/defect-catalog.md`.

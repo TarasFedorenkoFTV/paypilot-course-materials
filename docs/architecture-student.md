@@ -74,7 +74,10 @@
 
 ## Порти й запуск
 
-- Чат-UI + API: `http://localhost:8000` (docker compose або `make dev`).
-- Phoenix (UI трасування): `http://localhost:6006`.
-- Трейси: `GET /api/_test/traces/{request_id}` та файл `traces/traces.jsonl`.
+- Чат-UI + API: `http://localhost:8000` — `docker compose up --build -d` або
+  `python -m uvicorn app.main:app --port 8000`.
+- Phoenix (UI трасування): `http://localhost:6006` — **лише під docker
+  compose**. При запуску через uvicorn порт мертвий, і це нормально.
+- Трейси: `GET /api/_test/traces/{request_id}` та файл `traces/traces.jsonl` —
+  працюють завжди, незалежно від Phoenix.
 - Стан: `GET /api/_test/state/{table}`.

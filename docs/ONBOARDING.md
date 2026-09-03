@@ -61,11 +61,25 @@ AI-агента» вироджується в «поміркуй, які був�
 ```bash
 git clone <репозиторій>
 cd paypilot-stand
-python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
-cp .env.example .env          # і вписати ANTHROPIC_API_KEY
-make doctor                   # має бути provider [OK] anthropic
-make dev                      # http://localhost:8000
+python -m venv .venv
+.venv/Scripts/pip install -r requirements.txt   # Linux/macOS: .venv/bin/pip
+cp -n .env.example .env                         # і вписати ANTHROPIC_API_KEY
+python scripts/doctor.py                        # provider [OK] anthropic
+python -m uvicorn app.main:app --port 8000      # http://localhost:8000
 ```
+
+Або одним рухом через docker: `docker compose up --build -d` — тоді
+піднімається ще й Phoenix на **http://localhost:6006**.
+
+Дві речі, на яких спотикаються:
+
+- **`make` на Windows зазвичай немає.** Цілі Makefile — це однорядкові команди
+  вище, запускайте їх напряму. Де в документах написано `make doctor`, читайте
+  `python scripts/doctor.py`.
+- **`cp -n`, а не `cp`.** Якщо `.env` уже є й заповнений, звичайне `cp`
+  перезапише його прикладом, де стоїть `LLM_PROVIDER=mock` — стенд тихо
+  перейде на заглушку, і завдання, де треба показати розподіл відповідей,
+  стануть безглуздими.
 
 Відкрийте `http://localhost:8000`. Це чат із трьома панелями: розмова,
 перемикачі профілю й дефектів, дерево трейсу. Все, що потрібно для заняття,
