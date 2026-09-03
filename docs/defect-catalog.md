@@ -2,7 +2,7 @@
 
 Автогенеровано з `profiles/defects.yaml`, `profiles/profiles.yaml` і `docs/calibration-report.json`. Оновлювати: `python scripts/gen_catalog.py`.
 
-Заміряно: **24 дефектів**, приймається **24/24**. Провайдер: default (модель за замовчуванням провайдера), рука: ізоляційна (до переробки інструмента).
+Заміряно: **24 дефектів**, приймається **24/24**. Провайдер: default — **модель у звіті не зафіксована**; заміри вважати орієнтовними, поки не буде прогону, який її запише, рука: ізоляційна (до переробки інструмента).
 
 ## D01 — Conflicting fee instructions
 - **Механізм:** Prompt forbids quoting exact fee amounts AND forbids referring the client to documentation; fee questions become unresolvable, the agent picks a branch anew each run.

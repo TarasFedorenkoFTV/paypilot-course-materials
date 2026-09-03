@@ -134,6 +134,7 @@ make smoke                         # перевірити всі поверхн�
 | `docs/traces.md` | склад спанів і як писати assertions поверх них |
 | `docs/divergences.md` | розбіжності з лонгрідами — вхід методолога |
 | `docs/walkthrough-report.md` | наскрізний прохід 14 лабораторних: крок → статус |
+| `docs/acceptance-evidence.md` | приймальні докази: команда → дослівний результат |
 | `profiles/corridors.yaml` | коридори приймання, зафіксовані до прогону |
 | `docs/calibration-history/` | історія ітерацій калібрування — довідково, не докази |
 

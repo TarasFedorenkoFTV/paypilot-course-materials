@@ -77,6 +77,25 @@ CORRIDORS_FROZEN_AT = yaml.safe_load(
     _corridor_file.read_text(encoding="utf-8"))["frozen_at"]
 
 
+def _resolved_model() -> str:
+    """The model actually used, not the word "default".
+
+    The report recorded config.LLM_MODEL, which is empty whenever the provider
+    picks its own default — so the catalog header read "Провайдер: default" and
+    the single most important piece of provenance was missing: which model the
+    frequencies belong to. Behaviour is a property of the prompt-and-model
+    pair, so a report that does not name the model cannot be compared to a
+    later one.
+    """
+    if config.LLM_MODEL:
+        return config.LLM_MODEL
+    try:
+        from app.agent.providers.base import get_provider
+        return getattr(get_provider(), "model", "") or config.LLM_PROVIDER
+    except Exception:
+        return config.LLM_PROVIDER
+
+
 def profile_for(scenario) -> str | None:
     """The lesson profile this defect is accepted on, or None if it has no
     profile of its own (D02, D18 and the combination scenarios)."""
@@ -239,7 +258,7 @@ def main():
     from_this_run = sum(1 for r in rows if r.get("run_id") == run_id)
     arms = sorted({r.get("arm", "?").split(":")[0] for r in rows})
     out.write_text(json.dumps(
-        {"provider": config.LLM_PROVIDER, "model": config.LLM_MODEL or "default",
+        {"provider": config.LLM_PROVIDER, "model": _resolved_model(),
          "corridors_frozen_at": CORRIDORS_FROZEN_AT,
          "this_run": {"run_id": run_id, "nprob": args.nprob, "ndet": args.ndet,
                       "elapsed_s": elapsed, "defects_measured": len(results),
