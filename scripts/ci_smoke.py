@@ -14,6 +14,13 @@ os.environ.setdefault("LLM_PROVIDER", "mock")
 os.environ.setdefault("PROFILE", "clean")
 os.environ.setdefault("CLOCK_OVERRIDE", "2026-09-15T10:00:00Z")
 
+# Its own database. One of these checks resets state to the seed, and the
+# runbook tells a lecturer to run this before a lesson — with the stand
+# already up, that used to wipe the stand's data.
+import tempfile
+os.environ.setdefault("PAYPILOT_DB",
+                      str(Path(tempfile.mkdtemp(prefix="paypilot-smoke-")) / "smoke.db"))
+
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import app  # noqa: E402

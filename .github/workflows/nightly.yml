@@ -1,0 +1,79 @@
+# Щоденний сигнал. Мета — не «прогнати тести», а помітити регресію без того,
+# щоб хтось щоразу переклацував стенд руками. Мовчить, коли все зелене:
+# GitHub повідомляє власника репозиторію лише про падіння.
+name: nightly
+
+on:
+  schedule:
+    - cron: "0 5 * * *"      # 05:00 UTC щодня
+  workflow_dispatch:          # і кнопкою, коли треба зараз
+
+jobs:
+  # --- безкоштовне: без ключа, на mock-провайдері ---
+  surfaces:
+    runs-on: ubuntu-latest
+    env:
+      PROFILE: clean
+      LLM_PROVIDER: mock
+      CLOCK_OVERRIDE: "2026-09-15T10:00:00Z"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Environment diagnostics
+        run: python scripts/doctor.py
+      - name: Stand tests
+        run: python -m pytest tests/ -q
+      - name: Every stand surface answers
+        run: python scripts/ci_smoke.py
+      - name: Catalog still reproduces from the measured report
+        run: |
+          cp docs/defect-catalog.md /tmp/catalog.before
+          python scripts/gen_catalog.py
+          diff /tmp/catalog.before docs/defect-catalog.md
+
+  # --- студентська збірка не почала протікати ---
+  student-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12", cache: pip}
+      - run: pip install -r requirements.txt
+      - name: Build the student tree and check it for leaks
+        run: |
+          python scripts/make_public.py --dest /tmp/student
+      - name: Student tree stands on its own
+        working-directory: /tmp/student
+        env:
+          PROFILE: clean
+          LLM_PROVIDER: mock
+          CLOCK_OVERRIDE: "2026-09-15T10:00:00Z"
+        run: |
+          python -m pytest tests/ -q
+          python scripts/ci_smoke.py
+
+  # --- платне: лише якщо в репозиторії заведено ключ ---
+  live-walkthrough:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12", cache: pip}
+      - run: pip install -r requirements.txt
+      - name: Walk every lesson against the live model
+        env:
+          LLM_PROVIDER: anthropic
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLOCK_OVERRIDE: "2026-09-15T10:00:00Z"
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "No ANTHROPIC_API_KEY secret configured — skipping the live run."
+            echo "Add one in Settings → Secrets to enable it."
+            exit 0
+          fi
+          python scripts/walkthrough.py

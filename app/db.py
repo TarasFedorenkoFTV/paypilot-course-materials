@@ -2,12 +2,18 @@
 The test API reads these tables directly — several defects (D10, D11, D12)
 are provable only against a DB row, never against the reply text."""
 import json
+import os
 import sqlite3
 from pathlib import Path
 
 from app import config, seed
 
-DB_PATH = config.DATA_DIR / "paypilot.db"
+# PAYPILOT_DB lets a test run point at its own file. Without it, `pytest` and
+# ci_smoke reset the database the running stand is using — measured: a dispute
+# opened during a lesson disappeared when the lecturer ran the documented
+# pre-lesson checks with the stand already up.
+DB_PATH = (Path(os.environ["PAYPILOT_DB"]) if os.environ.get("PAYPILOT_DB")
+           else config.DATA_DIR / "paypilot.db")
 
 SCHEMA = """
 CREATE TABLE customers (

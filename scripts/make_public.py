@@ -92,6 +92,11 @@ DENY = [
     # the student tree and they describe evidence the student does not get
     "tests/test_docs_match_policy.py",
     "tests/test_acceptance_findings.py",
+    # asserts ONBOARDING documents single-tenancy; ONBOARDING is lecturer-only
+    "tests/test_shared_state.py",
+    # the nightly signal builds the student tree and names a provider secret:
+    # maintainers' machinery, not part of what a student clones
+    ".github/workflows/nightly.yml",
 ]
 
 # Lecturer-only, listed so --check can prove they are absent.
@@ -108,7 +113,8 @@ MUST_BE_ABSENT = [
     # _gen_corpus builds kb_broken, i.e. it is the mechanism of D16 in prose;
     # _judge is part of the calibration harness
     "scripts/_gen_corpus.py", "scripts/_gen_corpus2.py", "scripts/_judge.py",
-    "scripts/_scrub.py",
+    "scripts/_scrub.py", ".github/workflows/nightly.yml",
+    "tests/test_shared_state.py",
 ]
 
 # Phrases that must never appear anywhere in the public tree.

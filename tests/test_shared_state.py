@@ -52,3 +52,19 @@ def test_the_constraint_is_written_down():
     text = (config.ROOT / "docs" / "ONBOARDING.md").read_text(encoding="utf-8")
     assert "Один стенд на студента" in text
     assert "не мультитенантний" in text
+
+
+def test_the_suite_does_not_touch_the_working_database():
+    """Measured: a dispute opened during a lesson disappeared when the lecturer
+    ran the documented pre-lesson checks with the stand already up. The suite
+    resets state before every test, and it was resetting the same file the
+    running stand uses. Both pytest and ci_smoke now take their own database."""
+    import os
+    from app import db
+    assert os.environ.get("PAYPILOT_DB"), "conftest must pin a test database"
+    assert str(db.DB_PATH) == os.environ["PAYPILOT_DB"]
+    working = config.DATA_DIR / "paypilot.db"
+    assert db.DB_PATH != working, "the suite is writing to the stand's database"
+
+    smoke = (config.ROOT / "scripts" / "ci_smoke.py").read_text(encoding="utf-8")
+    assert "PAYPILOT_DB" in smoke, "ci_smoke resets state and needs its own too"
