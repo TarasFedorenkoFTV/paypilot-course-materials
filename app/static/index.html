@@ -71,6 +71,10 @@
   .seed{font:11px var(--mono);color:var(--muted);line-height:1.7}
   .seed b{color:var(--text);font-weight:600}
   .err{color:var(--bad)}
+  .pdiff{grid-column:1/-1;margin-top:10px;padding:8px 10px;border-radius:8px;
+         background:#2a1f14;border:1px solid #6a5228;color:#f5d9a8;
+         font:11px var(--mono);white-space:pre-wrap;word-break:break-word}
+  .pdiff strong{display:block;margin-bottom:4px;color:var(--warn)}
   .cmp{align-self:stretch;max-width:none;display:grid;grid-template-columns:1fr 1fr;
        gap:12px;background:none;border:none;padding:0}
   .cmp .col{background:var(--panel);border:1px solid var(--line);border-radius:10px;
@@ -212,7 +216,12 @@ async function send(){
     a.onclick = function(){ loadTrace(res.request_id); };
     m.appendChild(document.createTextNode(
       'крок ' + res.step_number + ' · in ' + u.input_tokens +
-      ' / out ' + u.output_tokens + ' tok · '));
+      ' / out ' + u.output_tokens + ' tok' +
+      // latency is a requirement in US-01 and a budget metric in L08; the API
+      // returns it, so it belongs next to the token count rather than one
+      // trace fetch away
+      (res.elapsed_ms != null ? ' · ' + Math.round(res.elapsed_ms) + ' ms' : '') +
+      ' · '));
     m.appendChild(a);
     thinking.appendChild(m);
     loadTrace(res.request_id);
@@ -261,11 +270,79 @@ async function compare(){
       holder.appendChild(col);
     });
     sessionId = null;   // compare runs in throwaway sessions
+    await showPayloadDiff(holder, d.clean.request_id, d.profile.request_id);
   }catch(e){
     holder.textContent = 'Помилка: ' + e.message;
     holder.classList.add('err');
   }finally{
     $('cmpBtn').disabled = false; $('sendBtn').disabled = false; inp.focus();
+  }
+}
+
+// Collect tool spans keyed by name + arguments, so the two runs can be paired.
+function toolIndex(tree){
+  const out = {};
+  (function walk(n){
+    if(n.name && n.name.indexOf('tool.') === 0){
+      const a = n.attributes || {};
+      const key = n.name + ' ' + JSON.stringify(a['tool.arguments'] || {});
+      if(!(key in out)) out[key] = a['tool.result'];
+    }
+    (n.children || []).forEach(walk);
+  })(tree);
+  return out;
+}
+
+function flatten(v, prefix, into){
+  if(v && typeof v === 'object' && !Array.isArray(v)){
+    Object.keys(v).forEach(function(k){ flatten(v[k], prefix ? prefix+'.'+k : k, into); });
+  }else{
+    into[prefix] = JSON.stringify(v);
+  }
+  return into;
+}
+
+// The headline lesson of this stand is that the prose can match while the
+// payload does not — and finding that meant loading each trace, hunting the
+// span and holding the first number in your head. The diff is computable from
+// what compare already returned, so it is shown.
+async function showPayloadDiff(holder, cleanId, dirtyId){
+  const note = document.createElement('div');
+  note.className = 'pdiff';
+  note.textContent = 'порівнюю результати інструментів…';
+  holder.appendChild(note);
+  try{
+    const a = toolIndex(await api('/api/_test/traces/' + cleanId));
+    const b = toolIndex(await api('/api/_test/traces/' + dirtyId));
+    const lines = [];
+    Object.keys(b).forEach(function(key){
+      if(!(key in a)){ lines.push(key.split(' ')[0] + ': викликано лише на профілі'); return; }
+      const fa = flatten(a[key], '', {}), fb = flatten(b[key], '', {});
+      Object.keys(fb).forEach(function(f){
+        if(fa[f] !== fb[f]) lines.push(key.split(' ')[0] + ' → ' + f + ': ' + fa[f] + '  ≠  ' + fb[f]);
+      });
+    });
+    Object.keys(a).forEach(function(key){
+      if(!(key in b)) lines.push(key.split(' ')[0] + ': викликано лише на clean');
+    });
+    note.textContent = '';
+    const h = document.createElement('strong');
+    h.textContent = lines.length
+      ? 'Результати інструментів розходяться (' + lines.length + '):'
+      : 'Результати інструментів однакові — розбіжність, якщо є, лише в тексті.';
+    note.appendChild(h);
+    lines.slice(0, 12).forEach(function(l){
+      const d = document.createElement('div');
+      d.textContent = l;
+      note.appendChild(d);
+    });
+    if(lines.length > 12){
+      const d = document.createElement('div');
+      d.textContent = '… ще ' + (lines.length - 12);
+      note.appendChild(d);
+    }
+  }catch(e){
+    note.textContent = 'Не вдалося порівняти результати інструментів: ' + e.message;
   }
 }
 
@@ -409,8 +486,12 @@ async function setProfile(){
 async function setClock(reset){
   const v = reset ? null : ($('clockInp').value.trim() || null);
   try{
-    await api('/api/_test/clock', jpost({now: v}));
-    addMsg('Час прогону: ' + (v || 'реальний'), 'sys');
+    // Report what the endpoint actually applied. Dropping the runtime
+    // override falls back to CLOCK_OVERRIDE from the environment, so saying
+    // "реальний" was wrong whenever that variable is set — which is the
+    // documented default.
+    const st = await api('/api/_test/clock', jpost({now: v}));
+    addMsg('Час прогону: ' + (st.now || 'реальний час системи'), 'sys');
     refreshState();
   }catch(e){ fail(e); }
 }

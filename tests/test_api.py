@@ -111,3 +111,29 @@ def test_ui_survives_a_narrow_screen():
     base_at = ui.index(".side{width:400px")
     assert media_at > base_at, \
         "the media query must come after the base rule or source order defeats it"
+
+
+def test_ui_diffs_the_tool_payloads_after_a_compare():
+    """Walking the documented 60-second check turned up that both columns show
+    the same number — correctly, because the agent recomputes it — so the
+    divergence had to be hunted by loading each trace and clicking spans. The
+    compare view now diffs the tool results itself."""
+    ui = _ui()
+    assert "showPayloadDiff" in ui
+    assert "toolIndex" in ui
+    assert "pdiff" in ui
+
+
+def test_ui_shows_latency_beside_the_token_count():
+    """POST /chat returns elapsed_ms; without it on screen a budget case had to
+    fetch a trace to read a number the reply already carried."""
+    assert "res.elapsed_ms" in _ui()
+
+
+def test_ui_reports_the_clock_the_stand_actually_applied():
+    """Resetting the clock said "реальний" while CLOCK_OVERRIDE from the
+    environment — the documented default — was still in force, so the message
+    contradicted the header right next to it."""
+    ui = _ui()
+    assert "st.now" in ui
+    assert "'Час прогону: ' + (v || 'реальний')" not in ui
