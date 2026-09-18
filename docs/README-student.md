@@ -12,6 +12,11 @@ AI-агент підтримки необанку **Verta**: перевіряє 
 
 ## Швидкий старт
 
+> **Піднімаєте вперше — відкрийте [docs/setup.md](docs/setup.md).** Там те
+> саме, але з нуля: що встановити, звідки взяти ключ, куди його вписати і як
+> переконатися, що все зібралося. Блок нижче — для тих, у кого Python або
+> Docker уже стоїть.
+
 ```bash
 python -m venv .venv
 .venv/Scripts/pip install -r requirements.txt      # Linux/macOS: .venv/bin/pip

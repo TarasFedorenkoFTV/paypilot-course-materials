@@ -29,8 +29,15 @@ next to the field it corrupts. That is deliberate and unavoidable: removing it
 would mean maintaining a second, divergent copy of the application, which is a
 worse problem than the one it solves. Reading the code to work out what a
 system does is legitimate QA work and takes real effort; copying a table that
-already contains the conclusion is not. Only hosting the stand centrally —
-students get a URL, never the source — closes the gap completely.
+already contains the conclusion is not.
+
+Central hosting would close the gap, and is rejected: ТЗ §3.2 puts all three
+surfaces on the student's machine and §4.1 requires fully local operation,
+because the seed carries injection payloads and the stand is vulnerable by
+design. §4.1 also has students working with the code, without which L11 is
+impossible. So the readable source is a premise, not a leak, and the homework
+grades the proof and the method rather than the act of finding. See the risk
+register in docs/acceptance-criteria.md.
 
 Usage:
   python scripts/make_public.py --dest D:/paypilot-public
@@ -69,6 +76,9 @@ ROOT_FILES = ["Dockerfile", "docker-compose.yml", "LICENSE",
 PUBLIC_DOCS = {
     "architecture-student.md": "architecture.md",
     "traces-student.md": "traces.md",
+    # Installation from an empty machine. Carries no course content at all,
+    # which is the point: it has to be usable before anyone teaches anything.
+    "student-setup.md": "setup.md",
     # The one document that names a defect on purpose: a worked run of the
     # loop, so nobody is blocked at the start by not knowing where to begin.
     "first-run-student.md": "first-run.md",
